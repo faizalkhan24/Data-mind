@@ -15,8 +15,10 @@ ml/models/*
 # Data
 data/raw/*
 data/processed/*
+data/sample/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+!data/sample/.gitkeep
 
 # Environment
 .env
