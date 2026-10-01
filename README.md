@@ -52,7 +52,31 @@ Predict whether a device is likely to experience a failure within the next 24 ho
 
 ## Project Status
 
-Early development.
+* [x] **Milestone 1:** Data generation and validation foundation (`ml/data_pipeline/generate_dataset.py`, `ml/data_pipeline/validate_dataset.py`)
+* [x] **Milestone 2:** Exploratory data analysis and profiling (`ml/data_pipeline/eda.py`, [`docs/eda/eda_report.md`](docs/eda/eda_report.md))
+* [ ] **Milestone 3:** Feature engineering pipeline
+* [ ] **Milestone 4:** Baseline model & evaluation framework
+* [ ] **Milestone 5:** Model progression (Logistic Regression → Random Forest → XGBoost)
+
+Detailed milestone documentation is available in [**`docs/MILESTONE_PROGRESS.md`**](docs/MILESTONE_PROGRESS.md).
+
+## Quickstart
+
+Run with Python 3.11 in `.venv`:
+
+```powershell
+# 1. Generate synthetic telemetry dataset (100k records, deterministic seed 42)
+python ml/data_pipeline/generate_dataset.py
+
+# 2. Run automated data quality and validation pipeline
+python ml/data_pipeline/validate_dataset.py --strict
+
+# 3. Generate exploratory data analysis report and visual charts
+python ml/data_pipeline/eda.py
+
+# 4. Run automated test suite
+python -m unittest discover -s tests -t . -v
+```
 
 ## Engineering Goals
 
