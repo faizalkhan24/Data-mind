@@ -16,12 +16,12 @@ This directory contains standalone, detailed engineering records for every miles
 | :---: | :--- | :--- | :---: | :---: |
 | **M6** | Model Explainability & Risk Attribution (SHAP) | [`MILESTONE_6_MODEL_EXPLAINABILITY.md`](MILESTONE_6_MODEL_EXPLAINABILITY.md) | **Completed** | `48bf1a7` |
 | **M7** | Model Registry & MLflow Tracking | [`MILESTONE_7_MODEL_REGISTRY.md`](MILESTONE_7_MODEL_REGISTRY.md) | **Completed** | `e8b226e` |
-| **M8** | Real-Time Prediction API (FastAPI) | *`MILESTONE_8_PREDICTION_API.md`* | **Next** | — |
+| **M8** | Real-Time Prediction API (FastAPI) | [`MILESTONE_8_PREDICTION_API.md`](MILESTONE_8_PREDICTION_API.md) | **Completed** | Pending Commit |
 
-### Phase 3: Data Systems, Streaming Ingestion & UI (Planned)
+### Phase 3: Data Systems, Streaming Ingestion & UI (In Progress)
 | Milestone | Title | Document | Status | Git Commit |
 | :---: | :--- | :--- | :---: | :---: |
-| **M9** | Database Persistence & History (PostgreSQL) | *`MILESTONE_9_DATABASE_PERSISTENCE.md`* | *Planned* | — |
+| **M9** | Database Persistence & History (PostgreSQL) | *`MILESTONE_9_DATABASE_PERSISTENCE.md`* | **Next** | — |
 | **M10** | Streaming Ingestion & Event Queue (Kafka/Redis) | *`MILESTONE_10_STREAMING_INGESTION.md`* | *Planned* | — |
 | **M11** | Fleet Health Dashboard (React + TypeScript) | *`MILESTONE_11_FLEET_DASHBOARD.md`* | *Planned* | — |
 

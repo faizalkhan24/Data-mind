@@ -11,9 +11,10 @@ env/
 # ML models / generated artifacts
 ml/models/*
 !ml/models/.gitkeep
-mlflow.db
 mlruns/
 mlartifacts/
+mlflow.db
+*.db
 
 # Data
 data/raw/*
