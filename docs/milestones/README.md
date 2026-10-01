@@ -8,6 +8,6 @@ This directory contains standalone, detailed engineering records for every compl
 | **M2** | Exploratory Data Analysis & Profiling | [`MILESTONE_2_EXPLORATORY_DATA_ANALYSIS.md`](MILESTONE_2_EXPLORATORY_DATA_ANALYSIS.md) | **Completed** | `851c998` |
 | **M3** | Feature Engineering Pipeline | [`MILESTONE_3_FEATURE_ENGINEERING.md`](MILESTONE_3_FEATURE_ENGINEERING.md) | **Completed** | `f7002d6` |
 | **M4** | Baseline Failure Prediction Model | [`MILESTONE_4_BASELINE_MODEL_AND_EVALUATION.md`](MILESTONE_4_BASELINE_MODEL_AND_EVALUATION.md) | **Completed** | `c34f1aa` |
-| **M5** | Advanced Model Progression (Random Forest & XGBoost) | [`MILESTONE_5_MODEL_PROGRESSION.md`](MILESTONE_5_MODEL_PROGRESSION.md) | **Completed** | Pending Commit |
+| **M5** | Advanced Model Progression (Random Forest & XGBoost) | [`MILESTONE_5_MODEL_PROGRESSION.md`](MILESTONE_5_MODEL_PROGRESSION.md) | **Completed** | `7b1fb6d` |
 
 Comprehensive aggregated progress is also maintained in [`docs/MILESTONE_PROGRESS.md`](../MILESTONE_PROGRESS.md).
