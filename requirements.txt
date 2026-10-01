@@ -8,3 +8,4 @@ seaborn>=0.13.0
 pyarrow>=17.0.0
 joblib>=1.4.0
 jupyter>=1.0.0
+shap>=0.51.0

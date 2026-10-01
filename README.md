@@ -2,8 +2,8 @@
 
 [![Python 3.11](https://img.shields.io/badge/python-3.11.9-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests: 33 Passing](https://img.shields.io/badge/tests-33%20passed-brightgreen.svg)]()
-[![Status: Phase 1 Complete](https://img.shields.io/badge/status-5%2F14%20Milestones%20Complete-orange.svg)]()
+[![Tests: 42 Passing](https://img.shields.io/badge/tests-42%20passed-brightgreen.svg)]()
+[![Status: Phase 2 In Progress](https://img.shields.io/badge/status-6%2F14%20Milestones%20Complete-orange.svg)]()
 
 **DataMind** is an enterprise-grade predictive intelligence platform designed to demonstrate deep Software Engineering, Data Engineering, and Machine Learning capabilities (Google Software Engineer standard). 
 
@@ -97,8 +97,8 @@ Phase 4: Cloud, Observability & CI/CD    ──► [PLANNED (M12 – M14)]    �
 | **M3** | **Feature Engineering Pipeline** | Feature Eng | 25 temporal signals (1h, 6h, 24h rolling, rate-of-change, power sag), zero leakage | **Completed** | [`f7002d6`](https://github.com/faizalkhan24/Data-mind/commit/f7002d6) &bull; [Doc](docs/milestones/MILESTONE_3_FEATURE_ENGINEERING.md) |
 | **M4** | **Baseline Failure Models** | ML | Group-aware split (70/15/15), Dummy baselines, Logistic Regression, PR-AUC | **Completed** | [`c34f1aa`](https://github.com/faizalkhan24/Data-mind/commit/c34f1aa) &bull; [Doc](docs/milestones/MILESTONE_4_BASELINE_MODEL_AND_EVALUATION.md) |
 | **M5** | **Advanced Model Progression** | ML | Random Forest vs. XGBoost benchmark, threshold tuning, latency profiling | **Completed** | [`7b1fb6d`](https://github.com/faizalkhan24/Data-mind/commit/7b1fb6d) &bull; [Doc](docs/milestones/MILESTONE_5_MODEL_PROGRESSION.md) |
-| **M6** | **Model Explainability (SHAP)** | ML / XAI | `TreeExplainer`, top-k human risk factor attribution, beeswarm & waterfall plots | **Next** | `ml/evaluation/explainability.py` |
-| **M7** | **Model Registry & Tracking** | MLOps | MLflow tracking, parameter/metric logging, artifact staging & model promotion | *Planned* | `ml/training/register_model.py` |
+| **M6** | **Model Explainability (SHAP)** | ML / XAI | `TreeExplainer`, top-k human risk factor attribution, beeswarm & waterfall plots | **Completed** | [Doc](docs/milestones/MILESTONE_6_MODEL_EXPLAINABILITY.md) |
+| **M7** | **Model Registry & Tracking** | MLOps | MLflow tracking, parameter/metric logging, artifact staging & model promotion | **Next** | `ml/training/register_model.py` |
 | **M8** | **Real-Time Prediction API** | Backend / SWE | FastAPI inference server, in-memory model cache, sub-5ms SLA, Pydantic DTOs | *Planned* | `services/DataMind.Prediction/` |
 | **M9** | **Database & Persistence Layer** | Backend / Data | PostgreSQL schema (devices, telemetry, predictions, alerts), async repository | *Planned* | `services/DataMind.Api/` |
 | **M10** | **Streaming Ingestion & Queue** | Data Eng | Kafka / Redis Streams buffer, real-time sliding window aggregation worker | *Planned* | `services/DataMind.Ingestion/` |
@@ -148,7 +148,10 @@ python ml/training/baseline_model.py
 # 7. Train and benchmark advanced ensemble models (Random Forest & XGBoost)
 python ml/training/train_models.py
 
-# 8. Run repository automated test suite (33 tests)
+# 8. Run explainability pipeline and generate SHAP diagnostic figures
+python ml/evaluation/explainability.py
+
+# 9. Run repository automated test suite (42 tests)
 python -m unittest discover -s tests -t . -v
 ```
 
