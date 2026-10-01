@@ -4,12 +4,17 @@ import unittest
 
 from fastapi.testclient import TestClient
 
-# Add prediction service directory to sys.path
-_SERVICE_DIR = Path(__file__).resolve().parents[2] / "services" / "DataMind.Prediction"
-if str(_SERVICE_DIR) not in sys.path:
-    sys.path.insert(0, str(_SERVICE_DIR))
+def _load_prediction_app():
+    service_dir = str(Path(__file__).resolve().parents[2] / "services" / "DataMind.Prediction")
+    for mod in ["main", "config", "schemas", "database", "models", "repositories", "model_cache"]:
+        sys.modules.pop(mod, None)
+    if service_dir in sys.path:
+        sys.path.remove(service_dir)
+    sys.path.insert(0, service_dir)
+    import main as pred_main
+    return pred_main.app
 
-from main import app
+app = _load_prediction_app()
 
 
 class TestPredictionApi(unittest.TestCase):

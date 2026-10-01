@@ -21,8 +21,8 @@ This directory contains standalone, detailed engineering records for every miles
 ### Phase 3: Data Systems, Streaming Ingestion & UI (In Progress)
 | Milestone | Title | Document | Status | Git Commit |
 | :---: | :--- | :--- | :---: | :---: |
-| **M9** | Database Persistence & History (PostgreSQL) | *`MILESTONE_9_DATABASE_PERSISTENCE.md`* | **Next** | — |
-| **M10** | Streaming Ingestion & Event Queue (Kafka/Redis) | *`MILESTONE_10_STREAMING_INGESTION.md`* | *Planned* | — |
+| **M9** | Database Persistence & Fleet API (SQLAlchemy) | [`MILESTONE_9_DATABASE_PERSISTENCE.md`](MILESTONE_9_DATABASE_PERSISTENCE.md) | **Completed** | Pending Push |
+| **M10** | Streaming Ingestion & Event Queue | *`MILESTONE_10_STREAMING_INGESTION.md`* | **Next** | — |
 | **M11** | Fleet Health Dashboard (React + TypeScript) | *`MILESTONE_11_FLEET_DASHBOARD.md`* | *Planned* | — |
 
 ### Phase 4: Production Infrastructure, Observability & CI/CD (Planned)

@@ -19,8 +19,8 @@
 | **M6: Model Explainability (SHAP)** | ML / XAI | `TreeExplainer`, top-k human risk factor attribution, beeswarm/waterfall plots | **Completed** | 9 | `48bf1a7` |
 | **M7: Model Registry & Tracking** | MLOps | MLflow tracking, parameter/metric logging, artifact staging & model promotion | **Completed** | 5 | `e8b226e` |
 | **M8: Real-Time Prediction API** | Backend / SWE | FastAPI inference server, in-memory model cache, sub-5ms SLA, Pydantic DTOs | **Completed** | 8 | `3a89645` |
-| **M9: Database & Persistence Layer** | Backend / Data | PostgreSQL schema (devices, telemetry, predictions, alerts), async repository | **Next** | — | — |
-| **M10: Streaming Ingestion & Queue** | Data Eng | Kafka / Redis Streams buffer, real-time sliding window aggregation worker | *Queued* | — | — |
+| **M9: Database & Persistence Layer** | Backend / Data | PostgreSQL/SQLite schema (devices, telemetry, predictions, alerts), async repository | **Completed** | 5 | Pending Push |
+| **M10: Streaming Ingestion & Queue** | Data Eng | Real-time sliding window aggregation worker, queue-driven feature computation | **Next** | — | — |
 | **M11: Fleet Health Dashboard** | Frontend | React + TypeScript web console, live risk grid, telemetry graphs, SHAP drawer | *Queued* | — | — |
 | **M12: Containerization & Compose** | DevOps | Multi-stage Dockerfiles, 1-command local orchestration (`docker compose up`) | *Queued* | — | — |
 | **M13: Observability & Monitoring** | SRE / DevOps | OpenTelemetry tracing, Prometheus metrics (latency, RPS, drift), Grafana | *Queued* | — | — |
