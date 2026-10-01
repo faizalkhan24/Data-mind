@@ -54,7 +54,7 @@ Predict whether a device is likely to experience a failure within the next 24 ho
 
 * [x] **Milestone 1:** Data generation and validation foundation (`ml/data_pipeline/generate_dataset.py`, `ml/data_pipeline/validate_dataset.py`)
 * [x] **Milestone 2:** Exploratory data analysis and profiling (`ml/data_pipeline/eda.py`, [`docs/eda/eda_report.md`](docs/eda/eda_report.md))
-* [ ] **Milestone 3:** Feature engineering pipeline
+* [x] **Milestone 3:** Feature engineering pipeline (`ml/feature_engineering/pipeline.py`, 25 predictor signals)
 * [ ] **Milestone 4:** Baseline model & evaluation framework
 * [ ] **Milestone 5:** Model progression (Logistic Regression → Random Forest → XGBoost)
 
@@ -74,7 +74,10 @@ python ml/data_pipeline/validate_dataset.py --strict
 # 3. Generate exploratory data analysis report and visual charts
 python ml/data_pipeline/eda.py
 
-# 4. Run automated test suite
+# 4. Generate engineered feature dataset (Parquet & CSV)
+python ml/feature_engineering/pipeline.py
+
+# 5. Run automated test suite (24 tests)
 python -m unittest discover -s tests -t . -v
 ```
 

@@ -206,15 +206,84 @@ tests.ml.test_eda
   - test_compute_outliers: Verifies IQR outlier statistics. [OK]
   - test_full_pipeline_artifacts: Verifies report and all 6 figure files exist. [OK]
 
+tests.ml.test_feature_engineering
+  - test_device_group_isolation_no_cross_leakage: Verifies rolling window group isolation. [OK]
+  - test_feature_names_list: Verifies 25 predictor features list. [OK]
+  - test_firmware_one_hot_encoding: Verifies mutual exclusivity of one-hot columns. [OK]
+  - test_metadata_save_and_load: Verifies pipeline metadata JSON persistence. [OK]
+  - test_no_null_values_produced: Verifies zero NaN or infinite values. [OK]
+  - test_process_dataset_file: Verifies batch Parquet/CSV file export. [OK]
+  - test_rolling_aggregations_mathematical_correctness: Verifies mathematical precision. [OK]
+
 ----------------------------------------------------------------------
-Ran 17 tests in 6.480s — ALL 17 TESTS PASSED (OK)
+Ran 24 tests in 6.308s — ALL 24 TESTS PASSED (OK)
 ```
 
 ---
 
-## 6. How to Reproduce All Steps
+## 6. Milestone 3: Feature Engineering Pipeline
 
-To reproduce all dataset generation, validation, EDA, and test execution steps locally:
+### 6.1 Technical Objective
+Convert raw discrete telemetry streams into a rich, leak-free feature matrix for predictive machine learning models. Build trailing temporal indicators that capture rate-of-change, power volatility, thermal trends, fault recurrence, and operational longevity.
+
+### 6.2 Feature Set Specification (25 Predictor Signals)
+
+| Feature Name | Category | Window | Physical Rationale & Formula |
+| :--- | :---: | :---: | :--- |
+| `temperature` | Instantaneous | 1h | Current chassis temperature measurement |
+| `voltage` | Instantaneous | 1h | Current supply rail voltage |
+| `current` | Instantaneous | 1h | Current electrical draw |
+| `battery_level` | Instantaneous | 1h | Current battery state of charge |
+| `network_quality` | Instantaneous | 1h | Current wireless signal strength |
+| `error_count` | Instantaneous | 1h | Error events in current hour |
+| `restart_count` | Instantaneous | Cumulative | Lifetime reboot counter |
+| `uptime_hours` | Instantaneous | Current | Continuous uptime since last boot |
+| `temperature_mean_6h` | Thermal Rolling | 6h | Trailing 6h smoothed temperature |
+| `temperature_mean_24h` | Thermal Rolling | 24h | Trailing 24h smoothed temperature baseline |
+| `temperature_std_6h` | Thermal Dynamics | 6h | Trailing 6h standard deviation (thermal stability) |
+| `temperature_change_1h`| Thermal Velocity | 1h | Immediate 1h rate of change: $T(t) - T(t-1)$ |
+| `voltage_mean_6h` | Electrical Rolling| 6h | Trailing 6h voltage mean |
+| `voltage_min_6h` | Electrical Sag | 6h | Trailing 6h minimum voltage (brownout detector) |
+| `voltage_std_6h` | Electrical Noise | 6h | Trailing 6h standard deviation (regulator instability) |
+| `current_mean_6h` | Power Load | 6h | Trailing 6h average load current |
+| `error_count_6h` | Fault History | 6h | Cumulative errors in trailing 6h |
+| `error_count_24h` | Fault History | 24h | Cumulative errors in trailing 24h |
+| `restart_count_24h` | Crash Frequency | 24h | Watchdog reboots occurred in trailing 24h: $R(t) - R(t-24)$ |
+| `battery_change_24h` | Battery Dynamics| 24h | Net discharge rate: $\text{batt}(t) - \text{batt}(t-24)$ |
+| `network_quality_mean_6h`| Connectivity | 6h | Trailing 6h average link quality |
+| `device_age_hours` | Longevity | Cumulative | Cumulative operational life: $U_0 + t$ |
+| `firmware_version_1.0.0`| Categorical | — | One-hot indicator for firmware v1.0.0 |
+| `firmware_version_1.1.0`| Categorical | — | One-hot indicator for firmware v1.1.0 |
+| `firmware_version_1.2.0`| Categorical | — | One-hot indicator for firmware v1.2.0 |
+
+### 6.3 Data Leakage Safeguards
+1. **Per-Device Group Isolation:** All rolling aggregations and lag differences are computed strictly within each device partition (`groupby('device_id')`), completely preventing cross-device information bleed.
+2. **Backwards-Looking Windows:** Rolling calculations use strictly backwards-facing windows (incorporating $t - W + 1$ to $t$). No forward-looking information ($\ge t+1$) is utilized.
+3. **Target Isolation:** The target label `failed_within_24h` is excluded from all feature calculations.
+4. **Boundary Condition Handling:** Missing lag periods at $t=0$ are safely handled without leakage (e.g. initial `temperature_change_1h` is set to $0.0$; initial rolling std is set to $0.0$; 24h deltas for $t<24$ evaluate against the device's earliest observed state).
+
+### 6.4 Top Feature Correlations with `failed_within_24h`
+The newly engineered features demonstrate strong predictive alignment:
+* `battery_change_24h`: **$-0.6911$** (rapid 24h battery collapse strongly signals failure)
+* `temperature_mean_6h`: **$+0.5948$** (sustained 6h thermal load)
+* `current_mean_6h`: **$+0.5874$** (sustained high power draw)
+* `error_count_6h`: **$+0.5620$** (medium-term error accumulation)
+* `voltage_mean_6h`: **$-0.5524$** & `voltage_min_6h`: **$-0.5374$** (sustained voltage droop and sag events)
+* `network_quality_mean_6h`: **$-0.4859$** (medium-term link degradation)
+* `restart_count_24h`: **$+0.3189$** (recent watchdog crash loops)
+* `voltage_std_6h`: **$+0.3068$** (power rail jitter / instability)
+* `temperature_std_6h`: **$+0.2560$** (thermal volatility)
+
+### 6.5 Output Artifacts
+* `data/processed/featured_telemetry.parquet`: High-performance columnar dataset (100,000 rows × 28 columns, 2.08 MB).
+* `data/processed/featured_telemetry.csv`: Formatted CSV dataset (100,000 rows × 28 columns, 12.97 MB).
+* `data/processed/feature_pipeline_metadata.json`: Feature names and firmware category registry for inference serving.
+
+---
+
+## 7. How to Reproduce All Steps
+
+To reproduce all dataset generation, validation, EDA, feature engineering, and test execution steps locally:
 
 ```powershell
 # Step 1: Activate the Python 3.11 virtual environment
@@ -229,37 +298,20 @@ python ml\data_pipeline\validate_dataset.py --strict
 # Step 4: Execute the EDA pipeline to refresh reports and figures
 python ml\data_pipeline\eda.py
 
-# Step 5: Run the entire test suite
+# Step 5: Execute the feature engineering pipeline
+python ml\feature_engineering\pipeline.py
+
+# Step 6: Run the entire automated test suite (24 tests)
 python -m unittest discover -s tests -t . -v
 ```
 
 ---
 
-## 7. Git Commit History for Milestones 1 & 2
+## 8. Next Step: Milestone 4 (Baseline Failure Prediction Model)
 
-The repository preserves atomic, descriptive commit messages:
-
-```text
-851c998 Add exploratory data analysis pipeline, visual artifacts, and report
-8ad82d2 Add synthetic device dataset generator and validation pipeline
-1ad4b30 Initial DataMind project structure
-9dbcf22 first commit
-```
-
----
-
-## 8. Next Step: Milestone 3 (Feature Engineering Pipeline)
-
-With raw telemetry thoroughly validated and profiled, **Milestone 3** will implement the feature engineering pipeline (`ml/feature_engineering/pipeline.py`):
-1. **Rolling Temporal Windows (1h, 6h, 24h):**
-   * Trailing means: `temperature_mean_1h`, `temperature_mean_6h`, `temperature_mean_24h`
-   * Volatility: `temperature_std_6h`
-   * Short-term velocity: `temperature_change_1h` ($\Delta T / \Delta t$)
-   * Voltage stability: `voltage_mean_6h`, `voltage_min_6h` (brownout detector)
-   * Error accumulation: `error_count_1h`, `error_count_6h`, `error_count_24h`
-   * Watchdog frequency: `restart_count_24h`
-   * Battery drain velocity: `battery_change_24h`
-   * Signal stability: `network_quality_mean_6h`
-2. **Categorical Encoders:** One-hot / frequency encoding for `firmware_version`.
-3. **Leakage-Free Execution:** Trailing windows calculated strictly on closed backwards-looking intervals (`closed='left'` / `closed='both'`).
-4. **Automated Unit Tests:** Verifying feature calculation accuracy and boundary conditions.
+With the feature matrix finalized and validated, **Milestone 4** will establish the initial predictive baseline:
+1. **Train/Validation/Test Split Strategy:** Group-aware device split (70% train, 15% validation, 15% test) to prevent temporal and device autocorrelation leakage.
+2. **Naive Baseline:** Majority-class predictor and stratified dummy baseline to establish minimum metric floors.
+3. **Simple ML Baseline:** Logistic Regression with standardized numerical features.
+4. **Evaluation Metrics:** Evaluation focusing on PR-AUC, ROC-AUC, Precision, Recall, and F1-score given the ~7.35% class imbalance.
+5. **Automated Unit Tests:** Verifying model fitting, inference, and metric computation.
