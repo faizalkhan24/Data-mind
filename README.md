@@ -56,7 +56,7 @@ Predict whether a device is likely to experience a failure within the next 24 ho
 * [x] **Milestone 2:** Exploratory data analysis and profiling (`ml/data_pipeline/eda.py`, [`docs/eda/eda_report.md`](docs/eda/eda_report.md))
 * [x] **Milestone 3:** Feature engineering pipeline (`ml/feature_engineering/pipeline.py`, 25 predictor signals)
 * [x] **Milestone 4:** Baseline model & evaluation framework (`ml/training/baseline_model.py`, PR-AUC 0.9625)
-* [ ] **Milestone 5:** Model progression (Random Forest → XGBoost → Ensembles)
+* [x] **Milestone 5:** Model progression (Random Forest & XGBoost, PR-AUC 0.9671 / 0.9608, [`MILESTONE_5_MODEL_PROGRESSION.md`](docs/milestones/MILESTONE_5_MODEL_PROGRESSION.md))
 
 Detailed milestone documentation is available in [**`docs/MILESTONE_PROGRESS.md`**](docs/MILESTONE_PROGRESS.md) and [**`docs/milestones/`**](docs/milestones/).
 
@@ -77,10 +77,13 @@ python ml/data_pipeline/eda.py
 # 4. Generate engineered feature dataset (Parquet & CSV)
 python ml/feature_engineering/pipeline.py
 
-# 5. Train and evaluate baseline prediction models
+# 5. Train baseline models
 python ml/training/baseline_model.py
 
-# 6. Run automated test suite (32 tests)
+# 6. Train advanced ensemble models (Random Forest & XGBoost)
+python ml/training/train_models.py
+
+# 7. Run automated test suite (33 tests)
 python -m unittest discover -s tests -t . -v
 ```
 
