@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ML models / generated artifacts
+ml/models/*
+!ml/models/.gitkeep
+
+# Data
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Environment
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+*.user
+*.suo
+
+# .NET
+bin/
+obj/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid
+
+# Test / coverage
+.coverage
+coverage/
+TestResults/
+
+# Python tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
