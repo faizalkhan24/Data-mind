@@ -16,7 +16,7 @@ This directory contains standalone, detailed engineering records for every miles
 | :---: | :--- | :--- | :---: | :---: |
 | **M6** | Model Explainability & Risk Attribution (SHAP) | [`MILESTONE_6_MODEL_EXPLAINABILITY.md`](MILESTONE_6_MODEL_EXPLAINABILITY.md) | **Completed** | `48bf1a7` |
 | **M7** | Model Registry & MLflow Tracking | [`MILESTONE_7_MODEL_REGISTRY.md`](MILESTONE_7_MODEL_REGISTRY.md) | **Completed** | `e8b226e` |
-| **M8** | Real-Time Prediction API (FastAPI) | [`MILESTONE_8_PREDICTION_API.md`](MILESTONE_8_PREDICTION_API.md) | **Completed** | Pending Commit |
+| **M8** | Real-Time Prediction API (FastAPI) | [`MILESTONE_8_PREDICTION_API.md`](MILESTONE_8_PREDICTION_API.md) | **Completed** | `3a89645` |
 
 ### Phase 3: Data Systems, Streaming Ingestion & UI (In Progress)
 | Milestone | Title | Document | Status | Git Commit |

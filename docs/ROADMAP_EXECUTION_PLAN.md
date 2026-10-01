@@ -18,7 +18,7 @@
 | **M5: Advanced Model Progression** | ML | Random Forest vs. XGBoost benchmark, threshold tuning, latency profiling | **Completed** | 1 | `7b1fb6d` |
 | **M6: Model Explainability (SHAP)** | ML / XAI | `TreeExplainer`, top-k human risk factor attribution, beeswarm/waterfall plots | **Completed** | 9 | `48bf1a7` |
 | **M7: Model Registry & Tracking** | MLOps | MLflow tracking, parameter/metric logging, artifact staging & model promotion | **Completed** | 5 | `e8b226e` |
-| **M8: Real-Time Prediction API** | Backend / SWE | FastAPI inference server, in-memory model cache, sub-5ms SLA, Pydantic DTOs | **Completed** | 8 | Pending |
+| **M8: Real-Time Prediction API** | Backend / SWE | FastAPI inference server, in-memory model cache, sub-5ms SLA, Pydantic DTOs | **Completed** | 8 | `3a89645` |
 | **M9: Database & Persistence Layer** | Backend / Data | PostgreSQL schema (devices, telemetry, predictions, alerts), async repository | **Next** | — | — |
 | **M10: Streaming Ingestion & Queue** | Data Eng | Kafka / Redis Streams buffer, real-time sliding window aggregation worker | *Queued* | — | — |
 | **M11: Fleet Health Dashboard** | Frontend | React + TypeScript web console, live risk grid, telemetry graphs, SHAP drawer | *Queued* | — | — |
