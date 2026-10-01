@@ -14,7 +14,7 @@ This directory contains standalone, detailed engineering records for every miles
 ### Phase 2: Explainability, MLOps & Real-Time Serving API (In Progress)
 | Milestone | Title | Document | Status | Git Commit |
 | :---: | :--- | :--- | :---: | :---: |
-| **M6** | Model Explainability & Risk Attribution (SHAP) | [`MILESTONE_6_MODEL_EXPLAINABILITY.md`](MILESTONE_6_MODEL_EXPLAINABILITY.md) | **Completed** | Pending Commit |
+| **M6** | Model Explainability & Risk Attribution (SHAP) | [`MILESTONE_6_MODEL_EXPLAINABILITY.md`](MILESTONE_6_MODEL_EXPLAINABILITY.md) | **Completed** | `48bf1a7` |
 | **M7** | Model Registry & MLflow Tracking | *`MILESTONE_7_MODEL_REGISTRY.md`* | **Next** | — |
 | **M8** | Real-Time Prediction API (FastAPI) | *`MILESTONE_8_PREDICTION_API.md`* | *Planned* | — |
 
