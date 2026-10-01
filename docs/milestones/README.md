@@ -22,7 +22,7 @@ This directory contains standalone, detailed engineering records for every miles
 | Milestone | Title | Document | Status | Git Commit |
 | :---: | :--- | :--- | :---: | :---: |
 | **M9** | Database Persistence & Fleet API (SQLAlchemy) | [`MILESTONE_9_DATABASE_PERSISTENCE.md`](MILESTONE_9_DATABASE_PERSISTENCE.md) | **Completed** | `e499300` |
-| **M10** | Streaming Ingestion & Event Queue | [`MILESTONE_10_STREAMING_INGESTION.md`](MILESTONE_10_STREAMING_INGESTION.md) | **Completed** | Pending Push |
+| **M10** | Streaming Ingestion & Event Queue | [`MILESTONE_10_STREAMING_INGESTION.md`](MILESTONE_10_STREAMING_INGESTION.md) | **Completed** | `54341b5` |
 | **M11** | Fleet Health Dashboard (React + TypeScript) | *`MILESTONE_11_FLEET_DASHBOARD.md`* | **Next** | — |
 
 ### Phase 4: Production Infrastructure, Observability & CI/CD (Planned)
