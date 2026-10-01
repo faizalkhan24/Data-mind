@@ -20,8 +20,8 @@
 | **M7: Model Registry & Tracking** | MLOps | MLflow tracking, parameter/metric logging, artifact staging & model promotion | **Completed** | 5 | `e8b226e` |
 | **M8: Real-Time Prediction API** | Backend / SWE | FastAPI inference server, in-memory model cache, sub-5ms SLA, Pydantic DTOs | **Completed** | 8 | `3a89645` |
 | **M9: Database & Persistence Layer** | Backend / Data | PostgreSQL/SQLite schema (devices, telemetry, predictions, alerts), async repository | **Completed** | 5 | `e499300` |
-| **M10: Streaming Ingestion & Queue** | Data Eng | Real-time sliding window aggregation worker, queue-driven feature computation | **Next** | — | — |
-| **M11: Fleet Health Dashboard** | Frontend | React + TypeScript web console, live risk grid, telemetry graphs, SHAP drawer | *Queued* | — | — |
+| **M10: Streaming Ingestion & Queue** | Data Eng | Real-time sliding window aggregation worker, queue-driven feature computation | **Completed** | 5 | Pending Push |
+| **M11: Fleet Health Dashboard** | Frontend | React + TypeScript web console, live risk grid, telemetry graphs, SHAP drawer | **Next** | — | — |
 | **M12: Containerization & Compose** | DevOps | Multi-stage Dockerfiles, 1-command local orchestration (`docker compose up`) | *Queued* | — | — |
 | **M13: Observability & Monitoring** | SRE / DevOps | OpenTelemetry tracing, Prometheus metrics (latency, RPS, drift), Grafana | *Queued* | — | — |
 | **M14: Kubernetes & CI/CD Pipelines** | Cloud / SRE | K8s manifests (Deployments, HPA), GitHub Actions automated CI/CD pipeline | *Queued* | — | — |

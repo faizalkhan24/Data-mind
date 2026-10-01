@@ -27,7 +27,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from config import settings
+from api_config import settings
 from database import get_db, init_db
 from models import Device
 from repositories import (

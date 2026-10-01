@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import DeclarativeBase
 
-from config import settings
+from api_config import settings
 
 logger = logging.getLogger(__name__)
 

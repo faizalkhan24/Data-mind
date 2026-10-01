@@ -26,7 +26,7 @@ _SERVICE_DIR = Path(__file__).resolve().parent
 if str(_SERVICE_DIR) not in sys.path:
     sys.path.insert(0, str(_SERVICE_DIR))
 
-from config import settings
+from prediction_config import settings
 from predictor import PredictionEngine, get_engine
 from schemas import (
     BatchPredictionRequest,

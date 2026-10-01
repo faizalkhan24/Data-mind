@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 
 from ml.evaluation.explainability import TelemetryExplainer
-from config import settings
+from prediction_config import settings
 from schemas import (
     BatchPredictionResponse,
     ModelMetadataResponse,

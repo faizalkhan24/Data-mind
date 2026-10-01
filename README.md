@@ -2,8 +2,8 @@
 
 [![Python 3.11](https://img.shields.io/badge/python-3.11.9-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests: 60 Passing](https://img.shields.io/badge/tests-60%20passed-brightgreen.svg)]()
-[![Status: Phase 3 In Progress](https://img.shields.io/badge/status-9%2F14%20Milestones%20Complete-orange.svg)]()
+[![Tests: 65 Passing](https://img.shields.io/badge/tests-65%20passed-brightgreen.svg)]()
+[![Status: Phase 3 In Progress](https://img.shields.io/badge/status-10%2F14%20Milestones%20Complete-orange.svg)]()
 
 **DataMind** is an enterprise-grade predictive intelligence platform designed to demonstrate deep Software Engineering, Data Engineering, and Machine Learning capabilities (Google Software Engineer standard). 
 
@@ -101,8 +101,8 @@ Phase 4: Cloud, Observability & CI/CD    ──► [PLANNED (M12 – M14)]    �
 | **M7** | **Model Registry & Tracking** | MLOps | MLflow tracking, parameter/metric logging, artifact staging & model promotion | **Completed** | [Doc](docs/milestones/MILESTONE_7_MODEL_REGISTRY.md) |
 | **M8** | **Real-Time Prediction API** | Backend / SWE | FastAPI inference server, in-memory model cache, sub-5ms SLA, Pydantic DTOs | **Completed** | [Doc](docs/milestones/MILESTONE_8_PREDICTION_API.md) |
 | **M9** | **Database & Persistence Layer** | Backend / Data | SQLAlchemy 2.0 async engine, PostgreSQL/SQLite DDL, async repositories, audit alerts | **Completed** | [Doc](docs/milestones/MILESTONE_9_DATABASE_PERSISTENCE.md) |
-| **M10** | **Streaming Ingestion & Queue** | Data Eng | Real-time sliding window aggregation worker, queue-driven feature computation | **Next** | `services/DataMind.Ingestion/` |
-| **M11** | **Fleet Health Dashboard** | Frontend | React + TypeScript web console, live risk grid, telemetry graphs, SHAP drawer | *Planned* | `services/DataMind.Dashboard/` |
+| **M10** | **Streaming Ingestion & Queue** | Data Eng | Real-time sliding window aggregation worker, queue-driven feature computation | **Completed** | [Doc](docs/milestones/MILESTONE_10_STREAMING_INGESTION.md) |
+| **M11** | **Fleet Health Dashboard** | Frontend | React + TypeScript web console, live risk grid, telemetry graphs, SHAP drawer | **Next** | `services/DataMind.Dashboard/` |
 | **M12** | **Containerization & Compose** | DevOps | Multi-stage Dockerfiles, 1-command local orchestration (`docker compose up`) | *Planned* | `infrastructure/docker/` |
 | **M13** | **Observability & Monitoring** | SRE / DevOps | OpenTelemetry tracing, Prometheus metrics (latency, RPS, drift), Grafana | *Planned* | `infrastructure/observability/` |
 | **M14** | **Kubernetes & CI/CD Pipelines** | Cloud / SRE | K8s manifests (Deployments, HPA), GitHub Actions automated CI/CD pipeline | *Planned* | `.github/workflows/` |
