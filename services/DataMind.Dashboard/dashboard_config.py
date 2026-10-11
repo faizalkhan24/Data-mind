@@ -32,7 +32,7 @@ class DashboardSettings(BaseModel):
     )
 
     host: str = os.getenv("DATAMIND_DASHBOARD_HOST", "0.0.0.0")
-    port: int = int(os.getenv("DATAMIND_DASHBOARD_PORT", "8080"))
+    port: int = int(os.getenv("DATAMIND_DASHBOARD_PORT", "8003"))
 
 
 settings = DashboardSettings()

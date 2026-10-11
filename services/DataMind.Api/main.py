@@ -330,8 +330,7 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(
-        "services.DataMind.Api.main:app",
+        app,
         host=settings.host,
         port=settings.port,
-        reload=False,
     )
