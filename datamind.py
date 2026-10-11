@@ -191,6 +191,17 @@ def cmd_start(args: argparse.Namespace) -> int:
         print("Access Fleet Console: http://localhost:8003")
         print("Press Ctrl+C to terminate all services.\n")
 
+        if getattr(args, "browser", False):
+            import threading
+            def _open_ui():
+                time.sleep(2.0)
+                try:
+                    import webbrowser
+                    webbrowser.open("http://localhost:8003")
+                except Exception:
+                    pass
+            threading.Thread(target=_open_ui, daemon=True).start()
+
         while True:
             time.sleep(1.0)
             for sk, p in list(processes.items()):
@@ -238,6 +249,8 @@ def main() -> int:
     start_parser.add_argument("--api", action="store_true", help="Start Core Api service")
     start_parser.add_argument("--prediction", action="store_true", help="Start Prediction service")
     start_parser.add_argument("--ingestion", action="store_true", help="Start Ingestion service")
+    start_parser.add_argument("--browser", dest="browser", action="store_true", default=False, help="Automatically open browser to Dashboard URL")
+    start_parser.add_argument("--no-browser", dest="browser", action="store_false", help="Do not open browser")
 
     args = parser.parse_args()
 

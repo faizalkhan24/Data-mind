@@ -22,4 +22,4 @@ $env:PYTHONPATH = $ScriptDir
 & $PythonExe (Join-Path $ScriptDir "datamind.py") version
 
 Write-Host "`nLaunching all cluster microservices (Dashboard, Api, Prediction, Ingestion)..." -ForegroundColor Green
-& $PythonExe (Join-Path $ScriptDir "datamind.py") start --all
+& $PythonExe (Join-Path $ScriptDir "datamind.py") start --all --browser

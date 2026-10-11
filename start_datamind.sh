@@ -23,4 +23,4 @@ ${PYTHON_EXE} "${SCRIPT_DIR}/datamind.py" version
 
 echo ""
 echo "Launching all cluster microservices (Dashboard, Api, Prediction, Ingestion)..."
-${PYTHON_EXE} "${SCRIPT_DIR}/datamind.py" start --all
+${PYTHON_EXE} "${SCRIPT_DIR}/datamind.py" start --all --browser
