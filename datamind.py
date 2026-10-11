@@ -134,6 +134,7 @@ def cmd_test(args: argparse.Namespace) -> int:
         "tests/services/test_ingestion_stream.py",
         "tests/services/test_dashboard.py",
         "tests/services/test_simulator.py",
+        "tests/test_end_to_end_integration.py",
     ]
 
     all_passed = True

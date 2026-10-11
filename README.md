@@ -1,10 +1,10 @@
 # DataMind: Predictive Intelligence & Failure Prevention Platform
 
-[![Version: 1.0.0.0](https://img.shields.io/badge/version-1.0.0.0-blue.svg)](VERSION)
+[![Version: 1.0.0.1](https://img.shields.io/badge/version-1.0.0.1-blue.svg)](VERSION)
 [![Python 3.11](https://img.shields.io/badge/python-3.11.9-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests: 98 Passing](https://img.shields.io/badge/tests-98%20passed-brightgreen.svg)]()
-[![Status: 14/14 Milestones Complete](https://img.shields.io/badge/status-14%2F14%20Milestones%20Complete-brightgreen.svg)]()
+[![Tests: 100% Passing](https://img.shields.io/badge/tests-100%25%20passing-brightgreen.svg)]()
+[![Status: Production Ready](https://img.shields.io/badge/status-Production%20Ready-brightgreen.svg)]()
 [![User Manual](https://img.shields.io/badge/docs-User%20Manual-orange.svg)](docs/USER_MANUAL.md)
 [![Contributing](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
@@ -224,7 +224,33 @@ D:\DataMind
 
 ---
 
-## 8. Open-Source Contributions & Protected Main Branch
+## 8. Quick Start with Unified CLI (`datamind.py`)
+
+DataMind provides a single-command CLI orchestrator for cluster management, testing, and simulation:
+
+```bash
+# Check platform version and build metadata
+python datamind.py version
+
+# Check readiness and health probe across all 4 microservices
+python datamind.py status
+
+# Run comprehensive test suite across all services and ML pipelines
+python datamind.py test
+
+# Launch autonomous real-time IoT fleet telemetry simulator (25 devices)
+python datamind.py simulate --devices 25 --interval 2.0
+
+# Start all microservices together (Windows PowerShell)
+.\start_datamind.ps1
+
+# Start all microservices together (Linux / macOS / WSL)
+./start_datamind.sh
+```
+
+---
+
+## 9. Open-Source Contributions & Protected Main Branch
 
 We welcome contributions from the global engineering community! To maintain platform reliability, the `main` branch is protected:
 * **Fork & Pull Request Workflow:** External contributors work on their own fork in a dedicated feature branch (`feat/my-feature`) and submit a Pull Request. Direct push access to `main` is restricted to project maintainers.
@@ -233,7 +259,7 @@ We welcome contributions from the global engineering community! To maintain plat
 
 ---
 
-## 9. License
+## 10. License
 
 This project is licensed under the MIT License — see the [`LICENSE`](LICENSE) file for details.
 Copyright (c) 2026 Faizal Khan.
