@@ -161,6 +161,46 @@ services:
     networks:
       - datamind-net
 
+  # ----------------------------------------------------------------------------
+  # Prometheus 2.54: Distributed Metrics Scraper & Real-Time Alert Engine
+  # ----------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: datamind-prometheus
+    restart: unless-stopped
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./infrastructure/observability/prometheus:/etc/prometheus:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - datamind-net
+
+  # ----------------------------------------------------------------------------
+  # Grafana 11.2: Visual Telemetry Dashboards & Executive KPI Console
+  # ----------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: datamind-grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./infrastructure/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infrastructure/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - datamind-net
+
 # ==============================================================================
 # Persistent Volumes & Network Topology
 # ==============================================================================

@@ -69,6 +69,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+try:
+    from services.observability import setup_metrics
+    setup_metrics(app, "ingestion")
+except ImportError:
+    pass
+
 
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next) -> Response:

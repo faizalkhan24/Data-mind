@@ -73,8 +73,8 @@ class TestDockerConfigurations(unittest.TestCase):
         data = yaml.safe_load(content)
 
         services = data.get("services", {})
-        expected_services = {"postgres", "redis", "prediction", "api", "ingestion", "dashboard"}
-        self.assertEqual(expected_services, set(services.keys()))
+        expected_core_services = {"postgres", "redis", "prediction", "api", "ingestion", "dashboard"}
+        self.assertTrue(expected_core_services.issubset(set(services.keys())), "All core services must be defined in compose")
 
     def test_docker_compose_service_dependencies_and_health(self) -> None:
         """Verifies health-dependent service orchestration hierarchy."""

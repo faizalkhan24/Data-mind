@@ -23,8 +23,8 @@
 | **M10: Streaming Ingestion & Queue** | Data Eng | Real-time sliding window aggregation worker, queue-driven feature computation | **Completed** | 5 | `54341b5` |
 | **M11: Fleet Health Dashboard** | Frontend | Web operations console, live risk grid, telemetry drawer, diagnostic simulator | **Completed** | 9 | `611b111` |
 | **M12: Containerization & Compose** | DevOps | Multi-stage Dockerfiles, 1-command local orchestration (`docker compose up`) | **Completed** | 9 | `ce80637` |
-| **M13: Observability & Monitoring** | SRE / DevOps | OpenTelemetry tracing, Prometheus metrics (latency, RPS, drift), Grafana | **Next** | — | — |
-| **M14: Kubernetes & CI/CD Pipelines** | Cloud / SRE | K8s manifests (Deployments, HPA), GitHub Actions automated CI/CD pipeline | *Queued* | — | — |
+| **M13: Observability & Monitoring** | SRE / DevOps | OpenTelemetry tracing, Prometheus metrics (latency, RPS, drift), Grafana | **Completed** | 7 | `23442c4` |
+| **M14: Kubernetes & CI/CD Pipelines** | Cloud / SRE | K8s manifests (Deployments, HPA), GitHub Actions automated CI/CD pipeline | **Next** | — | — |
 
 ---
 

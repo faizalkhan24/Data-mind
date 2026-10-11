@@ -1,0 +1,72 @@
+# ==============================================================================
+# DataMind Prometheus Alerting Rules
+# Operational SRE & Model Degradation Alert Definitions
+# ==============================================================================
+
+groups:
+  - name: datamind_sla_and_model_alerts
+    rules:
+      # ------------------------------------------------------------------------
+      # SLA Violation: Prediction Latency > 5 ms (Critical Google SWE Standard)
+      # ------------------------------------------------------------------------
+      - alert: PredictionLatencySlaBreached
+        expr: histogram_quantile(0.99, rate(datamind_prediction_latency_seconds_bucket[1m])) > 0.005
+        for: 30s
+        labels:
+          severity: critical
+          tier: inference
+        annotations:
+          summary: "XGBoost 99th percentile prediction latency breached 5 ms SLA."
+          description: "p99 inference latency is currently {{ $value | humanizeDuration }}, exceeding the 5 ms hard SLA threshold."
+
+      # ------------------------------------------------------------------------
+      # Model Drift / Failure Cascade: High Risk Classification Spike
+      # ------------------------------------------------------------------------
+      - alert: HighRiskFailureCascadeSpike
+        expr: rate(datamind_predictions_total{risk_level="HIGH"}[5m]) / rate(datamind_predictions_total[5m]) > 0.30
+        for: 1m
+        labels:
+          severity: warning
+          tier: mlops
+        annotations:
+          summary: "Abnormal surge in high-risk failure predictions across fleet."
+          description: "Over 30% of fleet devices scored as HIGH failure risk in the last 5 minutes. Possible sensor degradation or fleet anomaly."
+
+      # ------------------------------------------------------------------------
+      # API Reliability: Core Fleet API 5xx Error Rate > 1%
+      # ------------------------------------------------------------------------
+      - alert: CoreApiHighErrorRate
+        expr: sum(rate(http_requests_total{status_code=~"5.."}[2m])) / sum(rate(http_requests_total[2m])) > 0.01
+        for: 1m
+        labels:
+          severity: critical
+          tier: persistence
+        annotations:
+          summary: "Core Fleet API 5xx internal error rate exceeds 1%."
+          description: "Service returning 5xx responses at rate {{ $value | humanizePercentage }}."
+
+      # ------------------------------------------------------------------------
+      # Streaming Ingestion: Sliding Window Backpressure / Queue Congestion
+      # ------------------------------------------------------------------------
+      - alert: IngestionQueueCongestionBackpressure
+        expr: datamind_stream_buffer_depth > 5000
+        for: 45s
+        labels:
+          severity: warning
+          tier: stream-processing
+        annotations:
+          summary: "Streaming event queue experiencing backpressure."
+          description: "Buffer queue depth currently has {{ $value }} unconsumed telemetry observations."
+
+      # ------------------------------------------------------------------------
+      # Infrastructure Liveness: Microservice Instance Down
+      # ------------------------------------------------------------------------
+      - alert: MicroserviceInstanceDown
+        expr: up == 0
+        for: 30s
+        labels:
+          severity: critical
+          tier: infrastructure
+        annotations:
+          summary: "DataMind microservice instance is unreachable."
+          description: "Target {{ $labels.instance }} (job: {{ $labels.job }}) has been down for over 30 seconds."

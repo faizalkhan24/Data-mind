@@ -1,0 +1,69 @@
+# ==============================================================================
+# DataMind Master Prometheus Configuration
+# Distributed Metrics Scraping & SLA Observability Target Registry
+# ==============================================================================
+
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+  scrape_timeout: 4s
+  external_labels:
+    monitor: 'datamind-fleet-monitor'
+    environment: 'production'
+
+# Alerting Rule Files
+rule_files:
+  - "alerts.yml"
+
+# Scrape Configurations for DataMind Distributed Mesh
+scrape_configs:
+  # ----------------------------------------------------------------------------
+  # Self-Monitoring: Prometheus Engine
+  # ----------------------------------------------------------------------------
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # ----------------------------------------------------------------------------
+  # Microservice 1: DataMind.Prediction (Sub-5ms XGBoost SLA & SHAP Attribution)
+  # ----------------------------------------------------------------------------
+  - job_name: "datamind-prediction"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["prediction:8000"]
+        labels:
+          service: "datamind-prediction"
+          tier: "inference"
+
+  # ----------------------------------------------------------------------------
+  # Microservice 2: DataMind.Api (Core Fleet Persistence & Incident Alerting)
+  # ----------------------------------------------------------------------------
+  - job_name: "datamind-api"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["api:8001"]
+        labels:
+          service: "datamind-api"
+          tier: "persistence"
+
+  # ----------------------------------------------------------------------------
+  # Microservice 3: DataMind.Ingestion (Streaming Sliding Window Buffer Worker)
+  # ----------------------------------------------------------------------------
+  - job_name: "datamind-ingestion"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["ingestion:8002"]
+        labels:
+          service: "datamind-ingestion"
+          tier: "stream-processing"
+
+  # ----------------------------------------------------------------------------
+  # Microservice 4: DataMind.Dashboard (Operations Console & Diagnostic Gateway)
+  # ----------------------------------------------------------------------------
+  - job_name: "datamind-dashboard"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["dashboard:8080"]
+        labels:
+          service: "datamind-dashboard"
+          tier: "frontend-gateway"

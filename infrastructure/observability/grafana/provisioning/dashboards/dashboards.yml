@@ -1,0 +1,16 @@
+# ==============================================================================
+# Grafana Dashboard Provider Auto-Provisioning Configuration
+# ==============================================================================
+
+apiVersion: 1
+
+providers:
+  - name: 'DataMind Operations'
+    orgId: 1
+    folder: 'DataMind'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
