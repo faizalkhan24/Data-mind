@@ -158,7 +158,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.warning("Static directory not found at: %s", static_path)
     else:
         logger.info("Serving static assets from: %s", static_path)
+    if os.getenv("DATAMIND_AUTORUN_SIMULATOR", "false").lower() in ("true", "1", "yes"):
+        try:
+            from services.simulator.fleet_simulator import global_fleet_simulator
+            await global_fleet_simulator.start()
+        except Exception as exc:
+            logger.warning("Failed to autorun simulator: %s", exc)
     yield
+    try:
+        from services.simulator.fleet_simulator import global_fleet_simulator
+        if global_fleet_simulator.is_running:
+            await global_fleet_simulator.stop()
+    except Exception:
+        pass
     logger.info("Shutting down %s...", settings.app_name)
 
 
@@ -645,6 +657,41 @@ async def update_alert(alert_id: int, payload: AlertStatusUpdate) -> Dict[str, A
         "success": True,
         "alert": alert,
         "message": f"Alert #{alert_id} status updated to {payload.status}.",
+    }
+
+
+# ==============================================================================
+# Continuous Autonomous Fleet Simulator Controls
+# ==============================================================================
+
+@app.get("/api/dashboard/simulator/status", tags=["Simulator"])
+async def get_simulator_status() -> Dict[str, Any]:
+    """Returns real-time operational state and tick statistics of the fleet simulator."""
+    from services.simulator.fleet_simulator import global_fleet_simulator
+    return global_fleet_simulator.get_status()
+
+
+@app.post("/api/dashboard/simulator/start", tags=["Simulator"])
+async def start_simulator() -> Dict[str, Any]:
+    """Activates autonomous real-time IoT fleet telemetry generator daemon."""
+    from services.simulator.fleet_simulator import global_fleet_simulator
+    await global_fleet_simulator.start()
+    return {
+        "success": True,
+        "message": "Continuous fleet telemetry simulator activated.",
+        "status": global_fleet_simulator.get_status(),
+    }
+
+
+@app.post("/api/dashboard/simulator/stop", tags=["Simulator"])
+async def stop_simulator() -> Dict[str, Any]:
+    """Halts continuous background telemetry generation daemon."""
+    from services.simulator.fleet_simulator import global_fleet_simulator
+    await global_fleet_simulator.stop()
+    return {
+        "success": True,
+        "message": "Continuous fleet telemetry simulator stopped.",
+        "status": global_fleet_simulator.get_status(),
     }
 
 
