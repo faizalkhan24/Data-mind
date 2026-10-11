@@ -179,7 +179,12 @@
   function switchTab(tabId) {
     state.activeTab = tabId;
     dom.tabButtons.forEach((btn) => {
-      btn.classList.toggle('active', btn.dataset.tab === tabId);
+      const isActive = btn.dataset.tab === tabId;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      if (isActive && typeof btn.scrollIntoView === 'function') {
+        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
     });
     dom.tabPanes.forEach((pane) => {
       pane.classList.toggle('active', pane.id === `pane-${tabId}`);
@@ -208,7 +213,7 @@
 
     setTimeout(() => {
       toast.style.opacity = '0';
-      toast.style.transform = 'translateX(40px)';
+      toast.style.transform = window.innerWidth <= 640 ? 'translateY(16px)' : 'translateX(40px)';
       toast.style.transition = 'all 0.3s ease';
       setTimeout(() => toast.remove(), 300);
     }, 3500);

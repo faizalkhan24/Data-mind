@@ -26,24 +26,24 @@
       </div>
 
       <!-- Center Tab Navigation -->
-      <nav class="nav-tabs" id="main-nav-tabs">
-        <button class="nav-tab-btn active" data-tab="overview">
-          <span class="tab-icon">📊</span> Mission Control
+      <nav class="nav-tabs" id="main-nav-tabs" role="tablist" aria-label="Operations Views">
+        <button class="nav-tab-btn active" data-tab="overview" role="tab" aria-selected="true">
+          <span class="tab-icon">📊</span> <span class="tab-label">Mission Control</span>
         </button>
-        <button class="nav-tab-btn" data-tab="devices">
-          <span class="tab-icon">🛰️</span> Fleet Explorer
+        <button class="nav-tab-btn" data-tab="devices" role="tab" aria-selected="false">
+          <span class="tab-icon">🛰️</span> <span class="tab-label">Fleet Explorer</span>
         </button>
-        <button class="nav-tab-btn" data-tab="whatif">
-          <span class="tab-icon">🧠</span> AI What-If Studio
+        <button class="nav-tab-btn" data-tab="whatif" role="tab" aria-selected="false">
+          <span class="tab-icon">🧠</span> <span class="tab-label">AI What-If Studio</span>
         </button>
-        <button class="nav-tab-btn" data-tab="simulator">
-          <span class="tab-icon">⚡</span> Stream Simulator
+        <button class="nav-tab-btn" data-tab="simulator" role="tab" aria-selected="false">
+          <span class="tab-icon">⚡</span> <span class="tab-label">Stream Simulator</span>
         </button>
-        <button class="nav-tab-btn" data-tab="incidents">
-          <span class="tab-icon">🚨</span> Incident Command
+        <button class="nav-tab-btn" data-tab="incidents" role="tab" aria-selected="false">
+          <span class="tab-icon">🚨</span> <span class="tab-label">Incident Command</span>
         </button>
-        <button class="nav-tab-btn" data-tab="topology">
-          <span class="tab-icon">🛡️</span> Mesh & Security
+        <button class="nav-tab-btn" data-tab="topology" role="tab" aria-selected="false">
+          <span class="tab-icon">🛡️</span> <span class="tab-label">Mesh & Security</span>
         </button>
       </nav>
 
@@ -53,14 +53,14 @@
           <span class="pulse-dot"></span>
           <span id="system-status-text">SYSTEM HEALTHY</span>
         </div>
-        <button id="btn-toggle-sound" class="btn btn-secondary btn-icon-only" title="Toggle Audio Alarms">
+        <button id="btn-toggle-sound" class="btn btn-secondary btn-icon-only" title="Toggle Audio Alarms" aria-label="Toggle Audio Alarms">
           <span id="sound-icon">🔔</span>
         </button>
         <button id="btn-export-fleet" class="btn btn-secondary btn-sm" title="Export Fleet Inventory CSV">
-          <span>📥</span> Export CSV
+          <span>📥</span> <span class="btn-text">Export CSV</span>
         </button>
-        <button id="btn-refresh" class="btn btn-secondary">
-          <span class="btn-icon">↻</span> Refresh
+        <button id="btn-refresh" class="btn btn-secondary" aria-label="Refresh Telemetry">
+          <span class="btn-icon">↻</span> <span class="btn-text">Refresh</span>
         </button>
       </div>
     </header>

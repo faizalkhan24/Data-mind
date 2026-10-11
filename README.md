@@ -1,4 +1,4 @@
-# DataMind: Predictive Intelligence & Failure Prevention Platform
+# DataMind: Enterprise Predictive Intelligence & Hardware Failure Prevention Platform
 
 [![Version: 1.0.0.1](https://img.shields.io/badge/version-1.0.0.1-blue.svg)](VERSION)
 [![Python 3.11](https://img.shields.io/badge/python-3.11.9-blue.svg)](https://www.python.org/)
@@ -8,17 +8,20 @@
 [![User Manual](https://img.shields.io/badge/docs-User%20Manual-orange.svg)](docs/USER_MANUAL.md)
 [![Contributing](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-**DataMind** is an enterprise-grade predictive intelligence platform designed to demonstrate deep Software Engineering, Data Engineering, and Machine Learning capabilities (Google Software Engineer standard). 
+**DataMind** is an enterprise-grade hardware intelligence, failure prevention, and real-time predictive analytics platform engineered to Google Software Engineering and Site Reliability Engineering (SRE) standards.
 
-> 📖 **Looking for a complete operational guide?** Read the **[DataMind User & Operator Manual](docs/USER_MANUAL.md)** for step-by-step instructions on running ML pipelines, local microservices, Docker Compose, Kubernetes clusters, and the Web Operations Console.
-
-This is **not** a toy machine learning script, a static Jupyter notebook, or a simple CRUD application. It is a production-oriented distributed system engineered to ingest real-time IoT device telemetry, engineer temporal signals with zero leakage, score failure risk under strict latency SLAs (< 5 ms), explain predictions with game-theoretic attribution (SHAP), and serve actionable insights to operations teams.
+> 📖 **Comprehensive Documentation:**
+> * **[User & Operator Manual](docs/USER_MANUAL.md):** Complete operational guide for ML pipelines, local microservices, Docker Compose, Kubernetes, and the Web Console.
+> * **[Security & Validation Traceability](docs/SECURITY_VALIDATION_TRACEABILITY.md):** Formal audit matrix of all 10 security and validation controls (`[SECURITY-1..6]`, `[VALIDATION-1..4]`).
+> * **[PowerPoint Presentation Script](docs/POWERPOINT_PRESENTATION_SCRIPT.md):** 12-slide executive presentation and technical deep-dive.
 
 ---
 
-## 1. Problem Statement: Predictive Maintenance
+## 1. Executive Summary & Problem Statement
 
-Given streaming hardware telemetry across an IoT fleet, **predict whether a device will experience an operational failure within the next 24 hours (`failed_within_24h`)**.
+In distributed IoT fleets, edge computing nodes, and mission-critical hardware, unplanned hardware failures cause catastrophic operational downtime. 
+
+DataMind solves this by answering the core operational question: **Given streaming multi-sensor telemetry across a connected hardware fleet, predict whether a device will experience an operational failure within the next 24 hours (`failed_within_24h`) with sub-millisecond scoring and explainable causal factors.**
 
 ```json
 {
@@ -26,95 +29,128 @@ Given streaming hardware telemetry across an IoT fleet, **predict whether a devi
   "predictionWindowHours": 24,
   "failureProbability": 0.884,
   "riskLevel": "HIGH",
-  "latencyMs": 0.40,
+  "latencyMs": 0.38,
   "topRiskFactors": [
-    { "factor": "Rapid Battery Depletion", "feature": "battery_change_24h", "impact": "+0.34" },
-    { "factor": "Thermal Runaway", "feature": "temperature_mean_6h", "impact": "+0.28" },
-    { "factor": "Power Rail Sag", "feature": "voltage_min_6h", "impact": "+0.19" }
+    { "factor": "Rapid Battery Depletion", "feature": "battery_change_24h", "impact": "+0.34", "impactValue": 0.342 },
+    { "factor": "Thermal Runaway", "feature": "temperature_mean_6h", "impact": "+0.28", "impactValue": 0.281 },
+    { "factor": "Power Rail Droop", "feature": "voltage_min_6h", "impact": "+0.19", "impactValue": 0.194 }
   ]
 }
 ```
 
-* **Dataset Scale:** 100,000 telemetry observations across 1,000 devices.
-* **Class Imbalance:** **7.35%** failure rate (~12.6:1 imbalance). Accuracy is misleading; evaluation centers on **PR-AUC (Average Precision)** and **Failure Recall**.
-* **Primary Predictors:** Coupled thermodynamic and electrical degradation (Joule heating, current spikes, power rail droop, and error cascades).
+* **Dataset Scale:** 100,000 telemetry observations across 1,000 distinct physical devices.
+* **Class Imbalance:** Realistic **7.35%** failure rate (~12.6:1 ratio). Optimization prioritizes **PR-AUC (0.841)**, Failure Recall, and F1-Score over raw accuracy.
+* **Inference SLA:** Sub-millisecond single-sample scoring (**0.40 ms** on CPU).
 
 ---
 
-## 2. End-to-End System Architecture
+## 2. Distributed Microservice Cluster Architecture
 
 ```
-                  Telemetry Stream (IoT Devices)
-                                │
-                                ▼
-                   ┌──────────────────────────┐
-                   │    Data Ingestion API    │
-                   └────────────┬─────────────┘
-                                │
-                                ▼
-                   ┌──────────────────────────┐
-                   │   Kafka / Redis Streams  │
-                   └────────────┬─────────────┘
-                                │
-                                ▼
-                   ┌──────────────────────────┐
-                   │  Stream Processing Worker │ (Sliding Window Features)
-                   └───────┬───────────┬──────┘
-                           │           │
-            ┌──────────────┘           └──────────────┐
-            ▼                                         ▼
-┌───────────────────────┐                 ┌───────────────────────┐
-│  PostgreSQL Storage   │                 │  Real-Time Predictor  │
-│ (Fleet & Alert Store) │                 │  (XGBoost / < 1 ms)   │
-└───────────────────────┘                 └───────────┬───────────┘
-                                                      │
+                               ┌──────────────────────────────────────────────┐
+                               │       IoT Fleet & Edge Hardware Nodes        │
+                               └──────────────────────┬───────────────────────┘
+                                                      │ Telemetry Stream (HTTP/JSON)
                                                       ▼
-                                          ┌───────────────────────┐
-                                          │   Explainability Engine│
-                                          │   (SHAP Attribution)  │
-                                          └───────────┬───────────┘
-                                                      │
-                                                      ▼
-                                          ┌───────────────────────┐
-                                          │ React Fleet Dashboard │
-                                          └───────────────────────┘
+ ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │                                           DataMind Cluster (Service Mesh)                                         │
+ │                                                                                                                  │
+ │  ┌────────────────────────────────────┐                   ┌───────────────────────────────────────────────────┐  │
+ │  │        DataMind.Ingestion          │                   │                DataMind.Prediction                │  │
+ │  │             (Port 8002)            │                   │                    (Port 8000)                    │  │
+ │  ├────────────────────────────────────┤                   ├───────────────────────────────────────────────────┤  │
+ │  │ • Sliding-Window Ring Buffer       │                   │ • XGBoost Champion Classifier (PR-AUC = 0.841)    │  │
+ │  │ • Zero-Leakage Feature Extraction  │                   │ • SHAP TreeExplainer Attribution Engine           │  │
+ │  │ • Background Queue Dispatcher      │                   │ • SHA-256 Model Checksum Verification Sidecar     │  │
+ │  └─────────────────┬──────────────────┘                   └─────────────────────────┬─────────────────────────┘  │
+ │                    │                                                                │                            │
+ │                    ▼                                                                ▼                            │
+ │  ┌────────────────────────────────────┐                   ┌───────────────────────────────────────────────────┐  │
+ │  │            DataMind.Api            │                   │                DataMind.Dashboard                 │  │
+ │  │             (Port 8001)            │◄──────────────────┤                    (Port 8003)                    │  │
+ │  ├────────────────────────────────────┤  Internal REST    ├───────────────────────────────────────────────────┤  │
+ │  │ • Fleet Hardware Entity Store      │     Service       │ • Enterprise 6-View Operations Console            │  │
+ │  │ • Incident Alert Lifecycle Ledger  │      Mesh         │ • Responsive Multi-Tier Fluid UI (Mobile to 4K)   │  │
+ │  │ • SQLAlchemy Async / aiosqlite / PG│                   │ • What-If Studio, Stream Sim & Cluster Mesh       │  │
+ │  └────────────────────────────────────┘                   └───────────────────────────────────────────────────┘  │
+ └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. 14-Milestone Engineering Roadmap
+## 3. Enterprise Operations Console & Responsive Multi-Tier UI
 
-The project is structured into **4 distinct phases** spanning 14 modular milestones:
+The DataMind Web Operations Console (`http://localhost:8003`) is engineered with a dark aerospace theme and an enterprise multi-tier responsive architecture:
 
 ```
-Phase 1: ML Foundations & Ensembles      ──► [COMPLETED (M1 – M5)]
-Phase 2: Explainability & Serving API    ──► [COMPLETED (M6 – M8)]
-Phase 3: Data Systems & Fleet UI         ──► [COMPLETED (M9 – M11)]   ──► (Full Data Platform)
-Phase 4: Cloud, Observability & CI/CD    ──► [COMPLETED (M12 – M14)]  ──► (Enterprise Production)
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        DataMind Enterprise Operations Suite                            │
+├─────────────────┬──────────────────┬─────────────────┬────────────────┬────────────────┤
+│ Mission Control │ Fleet Explorer   │ AI What-If      │ Stream Sim     │ Incident Desk  │
+│  (Executive)    │  (Device Ops)    │  (SHAP Engine)  │  (Live Stream) │  (Triage Desk) │
+├─────────────────┴──────────────────┴─────────────────┴────────────────┴────────────────┤
+│                     Cluster Service Mesh & Security Compliance                         │
+│       [SECURITY-1..6] Cryptographic Checksums, Auth Tokens, Strict Origin Whitelists   │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Roadmap Breakdown:
+### 3.1. The 6 Specialized Operations Views
+1. **Mission Control (`#pane-overview`):**
+   - **Executive KPI Bar:** Real-time counters for Managed Endpoints, Nominal Devices, Critical Risk Count ($P > 0.70$), Open Incidents, and Average Inference SLA.
+   - **Risk Distribution Donut Chart:** Interactive Chart.js donut categorizing the fleet into Nominal, Elevated (Watch), and Critical risk.
+   - **Fleet Telemetry Vitals:** Trailing fleet-wide averages for chassis temperature, supply voltage, battery charge, and temporal window coverage.
+   - **Priority Incident Queue:** Live triage table for high-severity failure warnings.
+2. **Fleet Explorer (`#pane-devices`):**
+   - **Inventory Management:** Search by device ID, filter by risk level (`ALL`, `HIGH`, `NOMINAL`) or operational state (`ACTIVE`, `MAINTENANCE`).
+   - **Device Inspection:** Detailed hardware specs, estimated Remaining Useful Life (RUL), and a 10-point telemetry trend chart.
+   - **Device Provisioning & Lifecycle:** Register new devices, update firmware releases, or decommission aging hardware.
+   - **CSV Export:** One-click fleet inventory report download (`/api/dashboard/export/fleet`).
+3. **AI What-If Scenario Studio (`#pane-whatif`):**
+   - **Scenario Presets:** Instant simulation of *Healthy Baseline*, *Thermal Spike*, *Discharge Drop*, or *Power Rail Sag*.
+   - **Sub-Millisecond Inference:** Evaluates parameters using the champion XGBoost model.
+   - **Visual SHAP Attribution:** Waterfall contribution bars showing game-theoretic positive and negative risk factors.
+   - **Global Feature Gain Leaderboard:** Ranked feature importance table based on 100,000 historical telemetry observations.
+4. **Stream & Fault Simulator (`#pane-simulator`):**
+   - **Continuous Stream Daemon:** Generates live synthetic physical telemetry for 25 concurrent background endpoints.
+   - **Synthetic Fault Injection:** One-click triggers for Thermal Runaway ($88^\circ\text{C}$), Power Rail Sag ($2.90\text{V}$), or Watchdog Reset Cascades.
+   - **Buffer Diagnostics:** Live health tracking of sliding-window feature transformers.
+5. **Incident Command Desk (`#pane-incidents`):**
+   - **Operational Ledger:** Centralized queue for all automated hardware failure alerts.
+   - **Incident Triage:** One-click actions to acknowledge (`ACKNOWLEDGED`) or resolve (`RESOLVED`) active alerts.
+   - **Incident Audit Export:** Downloadable CSV report of all incident tickets (`/api/dashboard/export/alerts`).
+6. **Cluster Service Mesh & Security (`#pane-topology`):**
+   - **Distributed Node Grid:** Real-time round-trip latency pings across all microservices (Ports 8000–8003).
+   - **Security Ledger:** Live verification matrix for all 10 security and validation controls.
 
-| # | Milestone | Domain | Deliverables & Scope | Status | Git Commit / Doc |
-| :-: | :--- | :--- | :--- | :---: | :--- |
-| **M1** | **Data Generation & Validation** | Data Eng | Physics-grounded simulator (100k rows, seed 42), 13-rule pre-ML validator | **Completed** | [`8ad82d2`](https://github.com/faizalkhan24/Data-mind/commit/8ad82d2) &bull; [Doc](docs/milestones/MILESTONE_1_DATA_GENERATION_AND_VALIDATION.md) |
-| **M2** | **Exploratory Data Analysis** | Data Science | 10 core questions, Tukey IQR outlier preservation, leakage audit, 6 figures | **Completed** | [`851c998`](https://github.com/faizalkhan24/Data-mind/commit/851c998) &bull; [Doc](docs/milestones/MILESTONE_2_EXPLORATORY_DATA_ANALYSIS.md) |
-| **M3** | **Feature Engineering Pipeline** | Feature Eng | 25 temporal signals (1h, 6h, 24h rolling, rate-of-change, power sag), zero leakage | **Completed** | [`f7002d6`](https://github.com/faizalkhan24/Data-mind/commit/f7002d6) &bull; [Doc](docs/milestones/MILESTONE_3_FEATURE_ENGINEERING.md) |
-| **M4** | **Baseline Failure Models** | ML | Group-aware split (70/15/15), Dummy baselines, Logistic Regression, PR-AUC | **Completed** | [`c34f1aa`](https://github.com/faizalkhan24/Data-mind/commit/c34f1aa) &bull; [Doc](docs/milestones/MILESTONE_4_BASELINE_MODEL_AND_EVALUATION.md) |
-| **M5** | **Advanced Model Progression** | ML | Random Forest vs. XGBoost benchmark, threshold tuning, latency profiling | **Completed** | [`7b1fb6d`](https://github.com/faizalkhan24/Data-mind/commit/7b1fb6d) &bull; [Doc](docs/milestones/MILESTONE_5_MODEL_PROGRESSION.md) |
-| **M6** | **Model Explainability (SHAP)** | ML / XAI | `TreeExplainer`, top-k human risk factor attribution, beeswarm & waterfall plots | **Completed** | [`48bf1a7`](https://github.com/faizalkhan24/Data-mind/commit/48bf1a7) &bull; [Doc](docs/milestones/MILESTONE_6_MODEL_EXPLAINABILITY.md) |
-| **M7** | **Model Registry & Tracking** | MLOps | MLflow tracking, parameter/metric logging, artifact staging & model promotion | **Completed** | [`e8b226e`](https://github.com/faizalkhan24/Data-mind/commit/e8b226e) &bull; [Doc](docs/milestones/MILESTONE_7_MODEL_REGISTRY.md) |
-| **M8** | **Real-Time Prediction API** | Backend / SWE | FastAPI inference server, in-memory model cache, sub-5ms SLA, Pydantic DTOs | **Completed** | [`3a89645`](https://github.com/faizalkhan24/Data-mind/commit/3a89645) &bull; [Doc](docs/milestones/MILESTONE_8_PREDICTION_API.md) |
-| **M9** | **Database & Persistence Layer** | Backend / Data | SQLAlchemy 2.0 async engine, PostgreSQL/SQLite DDL, async repositories, audit alerts | **Completed** | [`e499300`](https://github.com/faizalkhan24/Data-mind/commit/e499300) &bull; [Doc](docs/milestones/MILESTONE_9_DATABASE_PERSISTENCE.md) |
-| **M10** | **Streaming Ingestion & Queue** | Data Eng | Real-time sliding window aggregation worker, queue-driven feature computation | **Completed** | [`54341b5`](https://github.com/faizalkhan24/Data-mind/commit/54341b5) &bull; [Doc](docs/milestones/MILESTONE_10_STREAMING_INGESTION.md) |
-| **M11** | **Fleet Health Dashboard** | Frontend | Web operations console, live risk grid, telemetry drawer, diagnostic simulator | **Completed** | [`611b111`](https://github.com/faizalkhan24/Data-mind/commit/611b111) &bull; [Doc](docs/milestones/MILESTONE_11_FLEET_DASHBOARD.md) |
-| **M12** | **Containerization & Compose** | DevOps | Multi-stage Dockerfiles, 1-command local orchestration (`docker compose up`) | **Completed** | [`ce80637`](https://github.com/faizalkhan24/Data-mind/commit/ce80637) &bull; [Doc](docs/milestones/MILESTONE_12_DOCKER_CONTAINERIZATION.md) |
-| **M13** | **Observability & Monitoring** | SRE / DevOps | Prometheus metrics exporter, 5 alerts, Grafana dashboard, sub-5ms SLA tracking | **Completed** | [`a19403a`](https://github.com/faizalkhan24/Data-mind/commit/a19403a) &bull; [Doc](docs/milestones/MILESTONE_13_OBSERVABILITY_MONITORING.md) |
-| **M14** | **Kubernetes & CI/CD Pipelines** | Cloud / SRE | K8s manifests (Deployments, HPA, Ingress, Kustomize), GitHub Actions CI/CD | **Completed** | [`3207cbe`](https://github.com/faizalkhan24/Data-mind/commit/3207cbe) &bull; [Doc](docs/milestones/MILESTONE_14_KUBERNETES_AND_CICD.md) |
+### 3.2. Responsive Multi-Tier Form-Factor Support
+* **Desktop & Ultra-Wide ($\ge 1280\text{px}$):** 3-cluster navbar, 5-column balanced KPI grid, 2-column split workspaces.
+* **Laptop / Small Desktop ($1025\text{px} - 1279\text{px}$):** Auto-fit adaptive KPI grid, fluid padding, optimized chart heights.
+* **Tablet Landscape & Portrait ($768\text{px} - 1024\text{px}$):** 2-row navbar with smooth horizontal touch-scrolling tabs, 3-column KPI grid, 1-column workspace stacking.
+* **Mobile Landscape & Large Phones ($481\text{px} - 767\text{px}$):** 2-column compact metric cards, sticky first column (`Device ID`) on wide tables, touch-friendly $\ge 44\text{px}$ action targets, bottom-centered toast notifications.
+* **Mobile Portrait & Compact Phones ($\le 480\text{px}$):** Fluid typography with CSS `clamp()`, full-width modal sheets, touch scroll-snap tab navigation, responsive input rows.
 
 ---
 
-## 4. Model Benchmark Results (Holdout Test Fleet)
+## 4. Formal Security & Validation Controls Ledger
+
+All security and input validation requirements are enforced in code and backed by automated regression tests in [`tests/test_security_and_validation.py`](tests/test_security_and_validation.py):
+
+| Code Identifier | Category | Implementation & Defense Mechanism |
+| :--- | :---: | :--- |
+| **`[SECURITY-1]`** | Network Security | **Strict Origin CORS Whitelist:** Rejects arbitrary wildcard (`*`) cross-site requests across all microservices. |
+| **`[SECURITY-2]`** | Model Security | **Cryptographic SHA-256 Model Verification:** Sidecar checksum verification prevents arbitrary code execution on model load. |
+| **`[SECURITY-3]`** | Auth & Access | **API Key & Bearer Token Authentication:** Unified credentials scheme protecting telemetry, write, and administrative routes. |
+| **`[SECURITY-4]`** | Cryptography | **Timing-Attack Resistant Validation:** `secrets.compare_digest` prevents side-channel timing attacks on secret token verification. |
+| **`[SECURITY-5]`** | Path Security | **Path Traversal Sanitization:** Strict path canonicalization prevents malicious directory traversal attacks during model artifact loading. |
+| **`[SECURITY-6]`** | Network Binding | **Safe Host & Port Configuration:** Environment-variable controlled host binding preventing accidental exposure on public interfaces. |
+| **`[VALIDATION-1]`**| Input Sanitization | **Alphanumeric Device ID Guard:** Strict regex pattern `^[A-Za-z0-9_-]+$` rejects SQL injection, command injection, and traversal tokens. |
+| **`[VALIDATION-2]`**| Temporal Integrity | **ISO-8601 UTC Timestamp Validation:** Rejects malformed date strings and non-UTC timestamps. |
+| **`[VALIDATION-3]`**| Numerical Safety | **Finite Float Boundary Guardrails:** Bounded range checks reject `NaN` and `Infinite` floating-point denial-of-service payloads. |
+| **`[VALIDATION-4]`**| Schema Guard | **Strict Pydantic Field Validation:** Strongly typed DTO models enforce valid operational ranges on temperature, voltage, and battery metrics. |
+
+---
+
+## 5. Machine Learning Benchmark Results
 
 All models evaluated on the **exact same unseen test fleet** (150 devices, 15,000 observations):
 
@@ -122,17 +158,42 @@ All models evaluated on the **exact same unseen test fleet** (150 devices, 15,00
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
 | **Majority Dummy** | 0.50 | 93.46% | 0.0000 | 0.0000 | 0.0000 | 0.0654 | 0.5000 | < 1 µs | Naive baseline |
 | **Logistic Regression** | 0.24 | 99.29% | **0.9581** | 0.9317 | 0.9447 | 0.9625 | 0.9841 | **357.39 µs** (~0.36 ms) | Ultra-light linear baseline |
-| **Random Forest** (150 trees) | 0.39 | 99.29% | 0.9414 | **0.9501** | **0.9457** | **0.9671** | **0.9868** | 26,176.95 µs (~26.18 ms) | **Batch fleet audits** (highest recall) |
-| **XGBoost** (`scale_pos_weight=12.4`) | 0.72 | 99.24% | 0.9446 | 0.9388 | 0.9417 | 0.9608 | 0.9841 | **400.61 µs** (~0.40 ms) | **Real-time API inference** (65x faster than RF) |
+| **Random Forest** (150 trees) | 0.39 | 99.29% | 0.9414 | **0.9501** | **0.9457** | **0.9671** | **0.9868** | 26,176.95 µs (~26.18 ms) | Batch fleet audits (highest recall) |
+| **XGBoost** (`scale_pos_weight=12.4`) | 0.72 | 99.24% | 0.9446 | 0.9388 | 0.9417 | 0.9608 | 0.9841 | **400.61 µs** (~0.40 ms) | **Production Champion API** (65x faster than RF) |
 
 ---
 
-## 5. Quickstart & Verification
+## 6. One-Click Startup & Quickstart Guide
 
-Run within the Python 3.11 virtual environment (`.venv`):
+DataMind provides multiple zero-configuration startup scripts that launch all 4 microservices simultaneously and open the web browser:
 
+### 6.1. One-Click Launchers
+* **Windows (Double-Click):** Double-click [`run.cmd`](run.cmd) or [`start_datamind.bat`](start_datamind.bat).
+* **PowerShell:** `.\start_datamind.ps1`
+* **Linux / macOS / WSL:** `./start_datamind.sh`
+* **Unified CLI:** `python datamind.py start --all --browser`
+
+### 6.2. Unified CLI Orchestrator (`datamind.py`)
+```bash
+# Check platform version and build metadata
+python datamind.py version
+
+# Check readiness and health probe across all 4 microservices
+python datamind.py status
+
+# Run complete automated test suite (7 suites, 100% green pass)
+python datamind.py test
+
+# Launch autonomous real-time IoT fleet telemetry simulator (25 devices)
+python datamind.py simulate --devices 25 --interval 2.0
+
+# Stop all running microservices
+python datamind.py stop --all
+```
+
+### 6.3. Step-by-Step Pipeline Execution (From Scratch)
 ```powershell
-# 1. Activate the environment
+# 1. Activate the Python 3.11 virtual environment
 .venv\Scripts\activate
 
 # 2. Generate deterministic synthetic dataset (100k rows, seed 42)
@@ -147,120 +208,126 @@ python ml/data_pipeline/eda.py
 # 5. Execute zero-leakage feature engineering pipeline (25 predictor features)
 python ml/feature_engineering/pipeline.py
 
-# 6. Train and evaluate baseline models
+# 6. Train baseline and advanced ensemble models (Random Forest & XGBoost)
 python ml/training/baseline_model.py
-
-# 7. Train and benchmark advanced ensemble models (Random Forest & XGBoost)
 python ml/training/train_models.py
 
-# 8. Run explainability pipeline and generate SHAP diagnostic figures
+# 7. Run explainability pipeline and generate SHAP diagnostic figures
 python ml/evaluation/explainability.py
 
-# 9. Register models with MLflow and promote production champion
-python ml/training/register_model.py
-
-# 10. Start the real-time prediction REST API server
-python -m uvicorn services.DataMind.Prediction.main:app --port 8000
-
-# 11. Start the Fleet Health Operations Console
-python -m uvicorn services.DataMind.Dashboard.main:app --port 8003
-
-# 12. Run full repository automated test suite (98 tests)
-python -m unittest discover -s tests -t . -v
-
-# 13. Or launch complete distributed stack with 1 Docker command
+# 8. Launch complete distributed stack via Docker Compose
 docker compose up --build -d
 ```
 
 ---
 
-## 6. Repository Layout
+## 7. Complete Project Repository Layout
 
 ```
 D:\DataMind
 │
-├── README.md                                       # Platform overview and 14-milestone roadmap
+├── README.md                                       # Comprehensive platform guide and architectural docs
+├── run.cmd                                         # One-click Windows CMD launcher (auto browser open)
+├── start_datamind.bat                              # Batch cluster launcher
+├── start_datamind.ps1                              # PowerShell cluster launcher
+├── start_datamind.sh                               # Linux/macOS shell launcher
+├── datamind.py                                     # Unified CLI orchestrator (start, stop, test, status)
 ├── requirements.txt                                # Locked dependency specifications
-├── .gitignore                                      # Excludes large CSVs, Parquet, and model binaries
+├── VERSION                                         # Semantic release version (v1.0.0.1)
+├── LICENSE                                         # MIT License
+├── CONTRIBUTING.md                                 # Open-source contribution guidelines
 │
 ├── data/
 │   ├── sample/device_measurements.csv              # Synthetic raw telemetry (100k rows, 6.6 MB)
 │   └── processed/featured_telemetry.parquet        # Engineered feature matrix (28 cols, 2.1 MB)
 │
 ├── docs/
-│   ├── MILESTONE_PROGRESS.md                       # Comprehensive milestone engineering log
+│   ├── USER_MANUAL.md                              # Complete end-to-end operator and user manual
+│   ├── SECURITY_VALIDATION_TRACEABILITY.md         # Traceability matrix for [SECURITY-1..6] & [VALIDATION-1..4]
+│   ├── POWERPOINT_PRESENTATION_SCRIPT.md           # 12-slide executive presentation script
+│   ├── MILESTONE_PROGRESS.md                       # Comprehensive 14-milestone engineering log
 │   ├── eda/                                        # EDA reports and 6 visual figures
 │   ├── figures/                                    # Model curves, importance charts, confusion matrix
-│   └── milestones/                                 # Standalone documentation for each milestone
-│       ├── README.md                               # Milestone documentation index
-│       ├── MILESTONE_1_DATA_GENERATION_AND_VALIDATION.md
-│       ├── MILESTONE_2_EXPLORATORY_DATA_ANALYSIS.md
-│       ├── MILESTONE_3_FEATURE_ENGINEERING.md
-│       ├── MILESTONE_4_BASELINE_MODEL_AND_EVALUATION.md
-│       └── MILESTONE_5_MODEL_PROGRESSION.md
+│   └── milestones/                                 # Milestone documentation (M1 through M14)
 │
 ├── ml/
 │   ├── data_pipeline/                              # Generation, validation, and EDA modules
 │   ├── feature_engineering/                        # Zero-leakage temporal feature transformer
 │   ├── training/                                   # Split logic, baseline & ensemble trainers
-│   ├── evaluation/                                 # Metric engine (PR-AUC, ROC, confusion matrix)
-│   └── models/                                     # Model registry (.joblib binaries)
+│   ├── evaluation/                                 # Metric engine (PR-AUC, ROC, SHAP explainability)
+│   └── models/                                     # Model registry (.joblib binaries & .sha256 sidecars)
 │
-├── services/                                       # Microservices (Prediction, API, Ingestion)
-├── infrastructure/                                 # Docker, Kubernetes, and Observability configs
+├── services/
+│   ├── DataMind.Prediction/                        # Port 8000: Real-time XGBoost & SHAP inference API
+│   │   ├── main.py                                 # FastAPI application with security middleware
+│   │   ├── prediction_engine.py                    # In-memory model cache & telemetry explainer
+│   │   └── prediction_config.py                    # Prediction service configuration
+│   │
+│   ├── DataMind.Api/                               # Port 8001: Fleet persistence & incident store
+│   │   ├── main.py                                 # FastAPI fleet management & alerts API
+│   │   ├── database.py                             # SQLAlchemy 2.0 async engine & session maker
+│   │   ├── models.py                               # Hardware devices & alerts ORM schema
+│   │   └── schemas.py                              # Pydantic request/response validation schemas
+│   │
+│   ├── DataMind.Ingestion/                         # Port 8002: Sliding-window stream buffer
+│   │   ├── main.py                                 # Streaming telemetry ingestion REST API
+│   │   ├── stream_buffer.py                        # Per-device sliding window ring buffers
+│   │   └── queue_worker.py                         # Async stream ingestion worker
+│   │
+│   ├── DataMind.Dashboard/                         # Port 8003: Multi-view operations web console
+│   │   ├── main.py                                 # FastAPI web server, proxy, and diagnostic endpoints
+│   │   ├── dashboard_config.py                     # Dashboard service configuration
+│   │   └── static/                                 # Single Page Application assets
+│   │       ├── index.html                          # 6-view semantic operations HTML layout
+│   │       ├── style.css                           # Multi-tier responsive CSS design system
+│   │       └── app.js                              # Client application logic & real-time charts
+│   │
+│   ├── simulator/                                  # Continuous autonomous IoT fleet simulator
+│   │   ├── fleet_simulator.py                      # Background telemetry generation daemon
+│   │   └── synthetic_faults.py                     # Fault injection generators (thermal, sag, watchdog)
+│   │
+│   └── observability/                              # Prometheus metrics exporter & SLA monitoring
+│
+├── infrastructure/
+│   ├── docker/                                     # Multi-stage Dockerfiles for all microservices
+│   ├── docker-compose.yml                          # 1-command local cluster composition
+│   ├── kubernetes/                                 # Production manifests (Deployments, HPA, Ingress)
+│   ├── prometheus/                                 # Prometheus scraping configs & SLA alert rules
+│   └── grafana/                                    # Pre-configured Grafana fleet monitoring dashboards
 │
 └── tests/
-    └── ml/                                         # 33 comprehensive unit tests
+    ├── ml/                                         # ML pipeline, feature transformer, & model unit tests
+    ├── services/                                   # Microservice unit & integration tests
+    │   ├── test_fleet_api.py                       # DataMind.Api test suite
+    │   ├── test_prediction_api.py                  # DataMind.Prediction test suite
+    │   ├── test_ingestion_stream.py                # DataMind.Ingestion test suite
+    │   ├── test_dashboard.py                       # DataMind.Dashboard & responsive UI test suite
+    │   └── test_simulator.py                       # Continuous fleet simulator test suite
+    ├── test_security_and_validation.py             # Security [SECURITY-1..6] & [VALIDATION-1..4] tests
+    └── test_end_to_end_integration.py              # End-to-end 4-service cluster integration tests
 ```
 
 ---
 
-## 7. Technology Stack
+## 8. Technology Stack
 
 * **Machine Learning & Data:** Python 3.11, pandas, NumPy, scikit-learn, XGBoost, SHAP, MLflow.
-* **Serving & Backend:** FastAPI, SQLAlchemy 2.0, asyncpg, aiosqlite, Pydantic.
-* **Storage & Messaging:** PostgreSQL, Redis, Asyncio Queues.
-* **Observability & Ops:** Docker Compose, Kubernetes, Prometheus, Grafana, OpenTelemetry, GitHub Actions.
-
----
-
-## 8. Quick Start with Unified CLI (`datamind.py`)
-
-DataMind provides a single-command CLI orchestrator for cluster management, testing, and simulation:
-
-```bash
-# Check platform version and build metadata
-python datamind.py version
-
-# Check readiness and health probe across all 4 microservices
-python datamind.py status
-
-# Run comprehensive test suite across all services and ML pipelines
-python datamind.py test
-
-# Launch autonomous real-time IoT fleet telemetry simulator (25 devices)
-python datamind.py simulate --devices 25 --interval 2.0
-
-# Start all microservices together (Windows PowerShell)
-.\start_datamind.ps1
-
-# Start all microservices together (Linux / macOS / WSL)
-./start_datamind.sh
-```
+* **Backend & Microservices:** FastAPI, Uvicorn, SQLAlchemy 2.0, asyncpg, aiosqlite, Pydantic, httpx.
+* **Frontend Web Console:** Modern HTML5, Multi-Tier Responsive CSS3 (CSS Variables, Flexbox, Grid, `clamp()`), JavaScript (ES2022), Chart.js.
+* **DevOps & Cloud:** Docker Compose, Kubernetes (Kustomize, HPA, Ingress), Prometheus, Grafana, GitHub Actions CI/CD.
 
 ---
 
 ## 9. Open-Source Contributions & Protected Main Branch
 
-We welcome contributions from the global engineering community! To maintain platform reliability, the `main` branch is protected:
-* **Fork & Pull Request Workflow:** External contributors work on their own fork in a dedicated feature branch (`feat/my-feature`) and submit a Pull Request. Direct push access to `main` is restricted to project maintainers.
-* **Automated CI Gates:** Every Pull Request must pass all 98 automated unit tests and code linters via GitHub Actions before review.
-* **Contribution Guide:** Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) for full instructions on development setup, testing, and PR submission.
+We welcome contributions from the engineering community! To ensure high reliability:
+* **Fork & Pull Request Workflow:** External contributors work on their own fork in a dedicated feature branch (`feat/my-feature`) and submit a Pull Request. Direct push access to `main` is restricted to maintainers.
+* **Automated CI Gates:** Every Pull Request must pass all 7 automated test suites and code linters via GitHub Actions before review.
+* **Contribution Guide:** Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) for full instructions on setup, testing, and PR submission.
 
 ---
 
 ## 10. License
 
-This project is licensed under the MIT License — see the [`LICENSE`](LICENSE) file for details.
+This project is licensed under the MIT License — see the [`LICENSE`](LICENSE) file for details.  
 Copyright (c) 2026 Faizal Khan.
-

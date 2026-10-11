@@ -59,11 +59,12 @@ body {
 
 .app-container {
   max-width: 1440px;
+  width: 100%;
   margin: 0 auto;
-  padding: 24px 32px 48px;
+  padding: clamp(12px, 2.5vw, 32px);
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: clamp(14px, 2vw, 24px);
 }
 
 /* ==============================================================================
@@ -73,11 +74,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
+  padding: clamp(12px, 1.5vw, 16px) clamp(14px, 2vw, 24px);
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
+  gap: 16px;
+  transition: all 0.2s ease;
 }
 
 .nav-brand {
@@ -840,6 +843,14 @@ body {
   padding: 4px 6px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nav-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-tab-btn {
@@ -857,6 +868,8 @@ body {
   gap: 6px;
   transition: all 0.2s ease;
   white-space: nowrap;
+  flex-shrink: 0;
+  user-select: none;
 }
 
 .nav-tab-btn:hover {
@@ -1121,28 +1134,376 @@ body {
 }
 
 /* ==============================================================================
-   Responsive Layout Breakpoints
+   Comprehensive Enterprise Responsive Breakpoints
+   Multi-Tier Adaptive Design: Desktop, Laptop, Tablet & Mobile Form Factors
    ============================================================================== */
+
+/* --- Breakpoint 1: Laptop & Small Desktop (<= 1200px) --- */
+@media (max-width: 1200px) {
+  .navbar {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .nav-tabs {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .kpi-card:nth-child(4),
+  .kpi-card:nth-child(5) {
+    grid-column: span 1;
+  }
+}
+
+/* --- Breakpoint 2: Tablet Landscape & Portrait (<= 1024px) --- */
 @media (max-width: 1024px) {
+  .app-container {
+    padding: 16px 20px;
+    gap: 18px;
+  }
+
+  .overview-analytics-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .chart-box {
+    height: 200px !important;
+  }
+
+  .workspace-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .sim-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .sim-stat-box:nth-child(4),
+  .sim-stat-box:nth-child(5) {
+    grid-column: span 1;
+  }
+
+  .modal-card {
+    max-width: min(92vw, 680px);
+  }
+}
+
+/* --- Breakpoint 3: Tablet Portrait & Large Phone (<= 840px) --- */
+@media (max-width: 840px) {
+  .nav-brand {
+    gap: 10px;
+  }
+
+  .brand-logo {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .brand-tag {
+    display: none;
+  }
+
+  .nav-controls {
+    gap: 10px;
+  }
+
+  .status-indicator {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
   .kpi-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
-  .workspace-grid {
+
+  .kpi-card:last-child {
+    grid-column: span 2;
+  }
+
+  .table-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .table-actions .input-search {
+    flex: 1 1 180px;
+    width: auto;
+  }
+
+  .table-actions .select-filter {
+    flex: 1 1 130px;
+  }
+
+  #btn-open-register-modal {
+    flex: 1 1 100%;
+    order: -1;
+  }
+
+  .topology-grid {
     grid-template-columns: 1fr;
   }
 }
 
+/* --- Breakpoint 4: Mobile Form Factor (<= 640px) --- */
 @media (max-width: 640px) {
   .app-container {
-    padding: 12px;
-    gap: 16px;
+    padding: 10px 12px 32px;
+    gap: 14px;
   }
+
   .navbar {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .nav-brand {
+    flex: 1;
+  }
+
+  .nav-controls {
+    flex-shrink: 0;
+    gap: 6px;
+  }
+
+  .btn-text {
+    display: none;
+  }
+
+  #btn-export-fleet,
+  #btn-refresh {
+    padding: 6px 10px;
+    min-height: 36px;
+  }
+
+  .nav-tabs {
+    padding: 3px 4px;
+    gap: 3px;
+  }
+
+  .nav-tab-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+    gap: 5px;
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .kpi-card {
+    padding: 12px 14px;
+    gap: 4px;
+  }
+
+  .kpi-label {
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .kpi-value {
+    font-size: 22px;
+  }
+
+  .kpi-sub {
+    font-size: 10px;
+  }
+
+  .card {
+    padding: 16px 14px;
+    gap: 14px;
+    border-radius: var(--radius-md);
+  }
+
+  .card-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 8px;
   }
+
+  .card-title {
+    font-size: 15px;
+  }
+
+  .vitals-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .vital-val {
+    font-size: 16px;
+  }
+
+  /* Sticky First Column for Wide Data Tables */
+  .table-responsive {
+    border-radius: var(--radius-sm);
+    max-height: 480px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 8px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .data-table th:first-child,
+  .data-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--bg-card);
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.4);
+  }
+
+  .data-table th:first-child {
+    background: var(--bg-secondary);
+    z-index: 3;
+  }
+
+  .data-table tbody tr:hover td:first-child {
+    background: var(--bg-card-hover);
+  }
+
+  /* Form & Input Stacking */
+  .input-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .preset-group {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    width: 100%;
+  }
+
+  .btn-preset {
+    padding: 6px 8px;
+    font-size: 11px;
+    text-align: center;
+  }
+
+  .sim-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .sim-stat-box:last-child {
+    grid-column: span 2;
+  }
+
+  .sim-action-buttons {
+    flex-direction: column;
+  }
+
+  .sim-action-buttons .btn {
+    width: 100%;
+  }
+
+  /* Touch-friendly Fault Buttons */
+  #btn-fault-thermal,
+  #btn-fault-sag,
+  #btn-fault-watchdog {
+    flex: 1 1 100%;
+    min-height: 38px;
+  }
+
+  /* Dialogs & Mobile Overlays */
+  .modal-backdrop {
+    padding: 12px;
+  }
+
+  .modal-card {
+    max-width: 100%;
+    width: 100%;
+    max-height: 94vh;
+    border-radius: var(--radius-md);
+  }
+
+  .modal-header {
+    padding: 14px 16px;
+  }
+
+  .modal-close {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .modal-spec-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .chart-container {
+    height: 170px;
+  }
+
+  /* Mobile Bottom-Pinned Toast Center */
+  .toast-container {
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: calc(100vw - 24px);
+    align-items: center;
+  }
+
+  .toast {
+    min-width: 0;
+    width: 100%;
+    font-size: 12px;
+    padding: 10px 14px;
+  }
+}
+
+/* --- Breakpoint 5: Small Phone (<= 400px) --- */
+@media (max-width: 400px) {
+  .app-container {
+    padding: 8px 8px 24px;
+  }
+
+  .navbar {
+    padding: 10px;
+  }
+
+  .brand-logo {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .brand-name {
+    font-size: 16px;
+  }
+
+  .nav-tab-btn {
+    padding: 5px 8px;
+    font-size: 10.5px;
+  }
+
   .kpi-grid {
     grid-template-columns: 1fr;
   }
+
+  .kpi-card:last-child {
+    grid-column: span 1;
+  }
+
+  .modal-spec-grid {
+    grid-template-columns: 1fr;
+  }
 }
+
