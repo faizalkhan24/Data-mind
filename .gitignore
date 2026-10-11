@@ -12,6 +12,8 @@ env/
 ml/models/*
 !ml/models/.gitkeep
 !ml/models/*.sha256
+!ml/models/best_model_xgboost.joblib
+!ml/models/baseline_logistic_regression.joblib
 mlruns/
 mlartifacts/
 mlflow.db

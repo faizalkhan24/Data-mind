@@ -81,11 +81,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Generate Synthetic Dataset & Feature Pipeline
+        run: |
+          python ml/data_pipeline/generate_dataset.py
+          python ml/feature_engineering/pipeline.py
+
       - name: Execute Full DataMind Test Suite
         env:
           PYTHONPATH: "."
         run: |
-          python -m unittest discover -s tests -t . -v
+          python datamind.py test
 
   docker-build-check:
     name: Docker Images Build Verification
@@ -99,7 +104,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: actions/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v3
 
       - name: Build Docker Image (${{ matrix.service }})
         uses: docker/build-push-action@v5

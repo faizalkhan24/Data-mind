@@ -24,12 +24,16 @@ if str(_REPO_ROOT) not in sys.path:
 
 # Service directory for Ingestion
 _INGESTION_DIR = str(_REPO_ROOT / "services" / "DataMind.Ingestion")
-if _INGESTION_DIR not in sys.path:
-    sys.path.insert(0, _INGESTION_DIR)
+for mod in ["schemas", "buffer", "main", "config", "queue_worker"]:
+    sys.modules.pop(mod, None)
+if _INGESTION_DIR in sys.path:
+    sys.path.remove(_INGESTION_DIR)
+sys.path.insert(0, _INGESTION_DIR)
 
 from services.simulator.fleet_simulator import FleetSimulator, SimulatedDeviceState
 from buffer import FleetBufferManager
 from schemas import RawTelemetryReading
+from queue_worker import StreamQueueWorker
 
 
 class TestEndToEndPlatformIntegration(unittest.TestCase):
@@ -98,7 +102,6 @@ class TestEndToEndPlatformIntegration(unittest.TestCase):
 
     def test_e2e_closed_loop_alert_dispatch_mock(self) -> None:
         """Verifies ingestion queue worker forwards prediction audit when risk is HIGH."""
-        from queue_worker import StreamQueueWorker
         from unittest.mock import AsyncMock, patch
 
         worker = StreamQueueWorker(buffer_manager=self.buffer_manager)
