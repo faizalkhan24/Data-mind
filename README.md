@@ -103,7 +103,7 @@ Phase 4: Cloud, Observability & CI/CD    ──► [IN PROGRESS (M12 – M14)] �
 | **M9** | **Database & Persistence Layer** | Backend / Data | SQLAlchemy 2.0 async engine, PostgreSQL/SQLite DDL, async repositories, audit alerts | **Completed** | [Doc](docs/milestones/MILESTONE_9_DATABASE_PERSISTENCE.md) |
 | **M10** | **Streaming Ingestion & Queue** | Data Eng | Real-time sliding window aggregation worker, queue-driven feature computation | **Completed** | [Doc](docs/milestones/MILESTONE_10_STREAMING_INGESTION.md) |
 | **M11** | **Fleet Health Dashboard** | Frontend | Web operations console, live risk grid, telemetry drawer, diagnostic simulator | **Completed** | [`611b111`](https://github.com/faizalkhan24/Data-mind/commit/611b111) &bull; [Doc](docs/milestones/MILESTONE_11_FLEET_DASHBOARD.md) |
-| **M12** | **Containerization & Compose** | DevOps | Multi-stage Dockerfiles, 1-command local orchestration (`docker compose up`) | **Completed** | [Doc](docs/milestones/MILESTONE_12_DOCKER_CONTAINERIZATION.md) |
+| **M12** | **Containerization & Compose** | DevOps | Multi-stage Dockerfiles, 1-command local orchestration (`docker compose up`) | **Completed** | [`ce80637`](https://github.com/faizalkhan24/Data-mind/commit/ce80637) &bull; [Doc](docs/milestones/MILESTONE_12_DOCKER_CONTAINERIZATION.md) |
 | **M13** | **Observability & Monitoring** | SRE / DevOps | OpenTelemetry tracing, Prometheus metrics (latency, RPS, drift), Grafana | **Next** | `infrastructure/observability/` |
 | **M14** | **Kubernetes & CI/CD Pipelines** | Cloud / SRE | K8s manifests (Deployments, HPA), GitHub Actions automated CI/CD pipeline | *Planned* | `.github/workflows/` |
 

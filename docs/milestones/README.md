@@ -28,7 +28,7 @@ This directory contains standalone, detailed engineering records for every miles
 ### Phase 4: Production Infrastructure, Observability & CI/CD (In Progress)
 | Milestone | Title | Document | Status | Git Commit |
 | :---: | :--- | :--- | :---: | :---: |
-| **M12** | Containerization & Local Orchestration (Docker) | [`MILESTONE_12_DOCKER_CONTAINERIZATION.md`](MILESTONE_12_DOCKER_CONTAINERIZATION.md) | **Completed** | `b8f9a12` |
+| **M12** | Containerization & Local Orchestration (Docker) | [`MILESTONE_12_DOCKER_CONTAINERIZATION.md`](MILESTONE_12_DOCKER_CONTAINERIZATION.md) | **Completed** | `ce80637` |
 | **M13** | Observability & Telemetry (Prometheus & Grafana) | *`MILESTONE_13_OBSERVABILITY_MONITORING.md`* | **Next** | — |
 | **M14** | Kubernetes Deployment & CI/CD (GitHub Actions) | *`MILESTONE_14_KUBERNETES_AND_CICD.md`* | *Planned* | — |
 
