@@ -216,7 +216,4 @@ D:\DataMind
 ## 7. Technology Stack
 
 * **Machine Learning & Data:** Python 3.11, pandas, NumPy, scikit-learn, XGBoost, SHAP, MLflow.
-* **Serving & Backend:** FastAPI, C# / .NET 10, ASP.NET Core, Pydantic.
-* **Storage & Messaging:** PostgreSQL, Redis, Apache Kafka.
-* **Frontend:** React, TypeScript, Vite, TailwindCSS.
 * **DevOps & Cloud:** Docker, Docker Compose, Kubernetes, Prometheus, Grafana, OpenTelemetry, GitHub Actions.
