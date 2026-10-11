@@ -4,8 +4,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Tests: 98 Passing](https://img.shields.io/badge/tests-98%20passed-brightgreen.svg)]()
 [![Status: 14/14 Milestones Complete](https://img.shields.io/badge/status-14%2F14%20Milestones%20Complete-brightgreen.svg)]()
+[![User Manual](https://img.shields.io/badge/docs-User%20Manual-orange.svg)](docs/USER_MANUAL.md)
 
 **DataMind** is an enterprise-grade predictive intelligence platform designed to demonstrate deep Software Engineering, Data Engineering, and Machine Learning capabilities (Google Software Engineer standard). 
+
+> 📖 **Looking for a complete operational guide?** Read the **[DataMind User & Operator Manual](docs/USER_MANUAL.md)** for step-by-step instructions on running ML pipelines, local microservices, Docker Compose, Kubernetes clusters, and the Web Operations Console.
 
 This is **not** a toy machine learning script, a static Jupyter notebook, or a simple CRUD application. It is a production-oriented distributed system engineered to ingest real-time IoT device telemetry, engineer temporal signals with zero leakage, score failure risk under strict latency SLAs (< 5 ms), explain predictions with game-theoretic attribution (SHAP), and serve actionable insights to operations teams.
 
@@ -158,9 +161,9 @@ python ml/training/register_model.py
 python -m uvicorn services.DataMind.Prediction.main:app --port 8000
 
 # 11. Start the Fleet Health Operations Console
-python -m uvicorn services.DataMind.Dashboard.main:app --port 8080
+python -m uvicorn services.DataMind.Dashboard.main:app --port 8003
 
-# 12. Run full repository automated test suite (90 tests)
+# 12. Run full repository automated test suite (98 tests)
 python -m unittest discover -s tests -t . -v
 
 # 13. Or launch complete distributed stack with 1 Docker command
