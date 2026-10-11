@@ -190,6 +190,44 @@ class TestIngestionStream(unittest.TestCase):
         resp_unknown = self.client.get("/api/v1/stream/devices/NON-EXISTENT-DEVICE/window")
         self.assertEqual(resp_unknown.status_code, 404)
 
+    def test_closed_loop_inference_forwarding(self) -> None:
+        """Verifies auto_infer=true executes inference and attaches prediction payload."""
+        from unittest.mock import patch
+
+        dev_id = f"DEV-LOOP-{int(datetime.now().timestamp())}"
+        payload = {
+            "device_id": dev_id,
+            "timestamp": "2026-01-04T12:00:00Z",
+            "temperature": 75.0,
+            "voltage": 3.10,
+            "current": 2.50,
+            "battery_level": 40.0,
+            "network_quality": 80.0,
+            "error_count": 5.0,
+            "restart_count": 3.0,
+            "uptime_hours": 200.0,
+            "firmware_version": "1.2.0",
+        }
+
+        mock_pred = {
+            "device_id": dev_id,
+            "predicted_failure_probability": 0.88,
+            "risk_level": "HIGH",
+            "inference_latency_ms": 12.5,
+            "top_risk_factors": [{"featureName": "temperature", "attributionScore": 0.45}],
+        }
+
+        with patch("queue_worker.StreamQueueWorker._call_prediction_service", return_value=mock_pred):
+            with patch("queue_worker.StreamQueueWorker._forward_alert_audit", return_value=None) as mock_forward:
+                resp = self.client.post("/api/v1/stream/telemetry?auto_infer=true", json=payload)
+                self.assertEqual(resp.status_code, 200)
+                data = resp.json()
+                self.assertEqual(data["status"], "PROCESSED")
+                self.assertIsNotNone(data["prediction"])
+                self.assertEqual(data["prediction"]["risk_level"], "HIGH")
+                self.assertEqual(data["prediction"]["predicted_failure_probability"], 0.88)
+                mock_forward.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()

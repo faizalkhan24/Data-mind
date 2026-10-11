@@ -23,7 +23,7 @@ _SERVICE_DIR = Path(__file__).resolve().parent
 if str(_SERVICE_DIR) not in sys.path:
     sys.path.insert(0, str(_SERVICE_DIR))
 
-from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from ingestion_config import settings
@@ -116,9 +116,12 @@ async def health_check() -> dict:
 )
 async def ingest_stream_event(
     reading: RawTelemetryReading,
+    auto_infer: bool = Query(False, description="Trigger real-time prediction and alert forwarding"),
     _auth: bool = Depends(verify_api_key),  # [SECURITY-3]: Authenticate streaming ingestion
 ) -> IngestionResponse:
     """Ingests a single streaming telemetry event and computes real-time 25-feature vector."""
+    if auto_infer or settings.enable_auto_inference:
+        return await worker.process_and_infer(reading, auto_inference=True)
     return worker.process_immediate(reading)
 
 
@@ -130,9 +133,29 @@ async def ingest_stream_event(
 )
 async def ingest_batch_events(
     batch: BatchIngestRequest,
+    auto_infer: bool = Query(False, description="Trigger real-time prediction and alert forwarding"),
     _auth: bool = Depends(verify_api_key),  # [SECURITY-3]: Authenticate batch ingestion
 ) -> BatchIngestResponse:
     """Ingests and enriches a batch of telemetry events in high-throughput mode."""
+    if auto_infer or settings.enable_auto_inference:
+        t0 = time.perf_counter()
+        results = []
+        failed = 0
+        for r in batch.readings:
+            try:
+                res = await worker.process_and_infer(r, auto_inference=True)
+                results.append(res)
+            except Exception as e:
+                logger.error("Failed to process event for %s: %s", r.device_id, e)
+                failed += 1
+        total_ms = (time.perf_counter() - t0) * 1000.0
+        return BatchIngestResponse(
+            total_received=len(batch.readings),
+            processed_count=len(results),
+            failed_count=failed,
+            total_time_ms=round(total_ms, 3),
+            results=results,
+        )
     return worker.process_batch(batch.readings)
 
 
