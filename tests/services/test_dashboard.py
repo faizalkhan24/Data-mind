@@ -51,9 +51,10 @@ class TestDashboardService(unittest.TestCase):
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, 200)
         self.assertIn("text/html", resp.headers["content-type"])
-        self.assertIn("DataMind — Fleet Intelligence", resp.text)
-        self.assertIn("Fleet Health & Risk Inventory", resp.text)
-        self.assertIn("Real-Time Diagnostic Simulator", resp.text)
+        self.assertIn("DataMind", resp.text)
+        self.assertIn("Mission Control", resp.text)
+        self.assertIn("Fleet Explorer", resp.text)
+        self.assertIn("AI What-If Studio", resp.text)
 
     def test_static_assets_delivery(self) -> None:
         """Verifies static CSS and JavaScript files are properly delivered."""
@@ -185,6 +186,96 @@ class TestDashboardService(unittest.TestCase):
         self.assertTrue(data.get("success"))
         self.assertEqual(data["device"]["device_id"], dev_id)
 
+    def test_update_and_delete_device_endpoints(self) -> None:
+        """Verifies PATCH /api/dashboard/devices/{device_id} and DELETE endpoints."""
+        dev_id = f"DEV-CRUD-{int(time.time())}"
+        reg_payload = {
+            "device_id": dev_id,
+            "firmware_version": "1.2.0",
+            "status": "ACTIVE",
+        }
+        resp_reg = self.client.post("/api/dashboard/devices", json=reg_payload)
+        self.assertEqual(resp_reg.status_code, 200)
+
+        # PATCH update
+        resp_patch = self.client.patch(
+            f"/api/dashboard/devices/{dev_id}",
+            json={"status": "MAINTENANCE", "firmware_version": "1.2.1"},
+        )
+        self.assertEqual(resp_patch.status_code, 200)
+        data_patch = resp_patch.json()
+        self.assertTrue(data_patch["success"])
+        self.assertEqual(data_patch["device"]["status"], "MAINTENANCE")
+        self.assertEqual(data_patch["device"]["firmware_version"], "1.2.1")
+
+        # DELETE remove
+        resp_del = self.client.delete(f"/api/dashboard/devices/{dev_id}")
+        self.assertEqual(resp_del.status_code, 200)
+        self.assertTrue(resp_del.json()["success"])
+
+        # DELETE non-existent returns 404
+        resp_del_404 = self.client.delete(f"/api/dashboard/devices/{dev_id}")
+        self.assertEqual(resp_del_404.status_code, 404)
+
+    def test_cluster_topology_endpoint(self) -> None:
+        """Verifies GET /api/dashboard/topology service mesh probe and security ledger."""
+        resp = self.client.get("/api/dashboard/topology")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("mesh", data)
+        self.assertIn("security_ledger", data)
+        self.assertIn("platform_version", data)
+        self.assertEqual(len(data["mesh"]), 4)
+        mesh_names = [n["name"] for n in data["mesh"]]
+        self.assertIn("DataMind.Dashboard", mesh_names)
+        self.assertIn("DataMind.Prediction", mesh_names)
+        self.assertIn("SECURITY-1", data["security_ledger"])
+        self.assertIn("VALIDATION-1", data["security_ledger"])
+
+    def test_model_feature_importance_endpoint(self) -> None:
+        """Verifies GET /api/dashboard/model/feature-importance returns ranked features."""
+        resp = self.client.get("/api/dashboard/model/feature-importance")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("model_champion", data)
+        self.assertIn("features", data)
+        self.assertGreater(len(data["features"]), 0)
+        first_feat = data["features"][0]
+        self.assertIn("rank", first_feat)
+        self.assertIn("feature", first_feat)
+        self.assertIn("importance", first_feat)
+
+    def test_export_endpoints(self) -> None:
+        """Verifies CSV report generation for fleet inventory and incident alerts."""
+        resp_fleet = self.client.get("/api/dashboard/export/fleet")
+        self.assertEqual(resp_fleet.status_code, 200)
+        self.assertIn("text/csv", resp_fleet.headers["content-type"])
+        self.assertIn("attachment; filename=", resp_fleet.headers.get("content-disposition", ""))
+        self.assertIn("device_id,hardware_model,firmware_version", resp_fleet.text)
+
+        resp_alerts = self.client.get("/api/dashboard/export/alerts")
+        self.assertEqual(resp_alerts.status_code, 200)
+        self.assertIn("text/csv", resp_alerts.headers["content-type"])
+        self.assertIn("attachment; filename=", resp_alerts.headers.get("content-disposition", ""))
+        self.assertIn("id,device_id,alert_level,status", resp_alerts.text)
+
+    def test_simulator_status_and_lifecycle(self) -> None:
+        """Verifies continuous fleet simulator status check and start/stop controls."""
+        resp_status = self.client.get("/api/dashboard/simulator/status")
+        self.assertEqual(resp_status.status_code, 200)
+        status_data = resp_status.json()
+        self.assertIn("running", status_data)
+        self.assertIn("total_payloads_sent", status_data)
+
+        resp_start = self.client.post("/api/dashboard/simulator/start")
+        self.assertEqual(resp_start.status_code, 200)
+        self.assertTrue(resp_start.json()["success"])
+
+        resp_stop = self.client.post("/api/dashboard/simulator/stop")
+        self.assertEqual(resp_stop.status_code, 200)
+        self.assertTrue(resp_stop.json()["success"])
+
 
 if __name__ == "__main__":
     unittest.main()
+

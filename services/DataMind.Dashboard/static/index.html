@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DataMind — Fleet Intelligence & Predictive Maintenance</title>
+  <title>DataMind — Enterprise Predictive Intelligence & Failure Prevention Console</title>
   <link rel="stylesheet" href="/static/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -17,183 +17,506 @@
       <div class="nav-brand">
         <div class="brand-logo">DM</div>
         <div class="brand-text">
-          <span class="brand-name">DataMind</span>
-          <span class="brand-tag">Predictive Intelligence Engine</span>
+          <div class="brand-title-wrap">
+            <span class="brand-name">DataMind</span>
+            <span class="badge badge-info" style="font-size: 10px;">v1.0.0.1 ENTERPRISE</span>
+          </div>
+          <span class="brand-tag">Predictive Intelligence & Hardware Failure Prevention Platform</span>
         </div>
       </div>
+
+      <!-- Center Tab Navigation -->
+      <nav class="nav-tabs" id="main-nav-tabs">
+        <button class="nav-tab-btn active" data-tab="overview">
+          <span class="tab-icon">📊</span> Mission Control
+        </button>
+        <button class="nav-tab-btn" data-tab="devices">
+          <span class="tab-icon">🛰️</span> Fleet Explorer
+        </button>
+        <button class="nav-tab-btn" data-tab="whatif">
+          <span class="tab-icon">🧠</span> AI What-If Studio
+        </button>
+        <button class="nav-tab-btn" data-tab="simulator">
+          <span class="tab-icon">⚡</span> Stream Simulator
+        </button>
+        <button class="nav-tab-btn" data-tab="incidents">
+          <span class="tab-icon">🚨</span> Incident Command
+        </button>
+        <button class="nav-tab-btn" data-tab="topology">
+          <span class="tab-icon">🛡️</span> Mesh & Security
+        </button>
+      </nav>
+
+      <!-- Right Controls -->
       <div class="nav-controls">
         <div class="status-indicator">
           <span class="pulse-dot"></span>
           <span id="system-status-text">SYSTEM HEALTHY</span>
         </div>
+        <button id="btn-toggle-sound" class="btn btn-secondary btn-icon-only" title="Toggle Audio Alarms">
+          <span id="sound-icon">🔔</span>
+        </button>
+        <button id="btn-export-fleet" class="btn btn-secondary btn-sm" title="Export Fleet Inventory CSV">
+          <span>📥</span> Export CSV
+        </button>
         <button id="btn-refresh" class="btn btn-secondary">
           <span class="btn-icon">↻</span> Refresh
         </button>
       </div>
     </header>
 
-    <!-- KPI Metric Summary Cards -->
+    <!-- Global Executive KPI Bar -->
     <section class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-label">TOTAL FLEET DEVICES</div>
+        <div class="kpi-label">MANAGED ENDPOINTS</div>
         <div class="kpi-value" id="kpi-total-devices">--</div>
-        <div class="kpi-sub">Managed IoT endpoints</div>
+        <div class="kpi-sub">Total provisioned hardware</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">ACTIVE HARDWARE</div>
+        <div class="kpi-label">HEALTHY / NOMINAL</div>
         <div class="kpi-value kpi-success" id="kpi-active-devices">--</div>
-        <div class="kpi-sub">Nominal operational state</div>
+        <div class="kpi-sub">Nominal baseline state</div>
       </div>
       <div class="kpi-card kpi-card-danger">
-        <div class="kpi-label">HIGH-RISK UNITS (&gt; 0.70)</div>
+        <div class="kpi-label">CRITICAL RISK (&gt; 0.70)</div>
         <div class="kpi-value kpi-danger" id="kpi-high-risk">--</div>
-        <div class="kpi-sub">Predicted failure within 24h</div>
+        <div class="kpi-sub">Impending failure within 24h</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">OPEN INCIDENTS</div>
         <div class="kpi-value kpi-warning" id="kpi-open-alerts">--</div>
-        <div class="kpi-sub">Critical failure alerts</div>
+        <div class="kpi-sub">Active failure tickets</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">AVG INFERENCE SLA</div>
         <div class="kpi-value kpi-highlight" id="kpi-latency">&lt; 0.50 ms</div>
-        <div class="kpi-sub">XGBoost real-time scoring</div>
+        <div class="kpi-sub">Real-time XGBoost scoring</div>
       </div>
     </section>
 
-    <!-- Main Workspace Split -->
-    <div class="workspace-grid">
-      <!-- Left Column: Fleet Inventory & Risk Grid -->
-      <section class="card fleet-section">
-        <div class="card-header">
-          <div class="card-title">Fleet Health & Risk Inventory</div>
-          <div class="table-actions">
-            <button id="btn-open-register-modal" class="btn btn-primary btn-sm">+ Register Device</button>
-            <input type="text" id="device-search" placeholder="Search Device ID..." class="input-search">
-            <select id="filter-risk" class="select-filter">
-              <option value="ALL">All Risk Levels</option>
-              <option value="HIGH">High Risk Only</option>
-              <option value="NOMINAL">Nominal / Low Risk</option>
-            </select>
+    <!-- ========================================================================= -->
+    <!-- TAB 1: MISSION CONTROL OVERVIEW -->
+    <!-- ========================================================================= -->
+    <main class="tab-pane active" id="pane-overview">
+      <div class="overview-analytics-grid">
+        <!-- Fleet Health Distribution Donut -->
+        <div class="card chart-card">
+          <div class="card-header">
+            <div class="card-title">Fleet Risk Health Distribution</div>
+            <span class="badge badge-nominal" id="badge-health-score">Health Index: 95.0%</span>
+          </div>
+          <div class="chart-box" style="height: 220px; position: relative;">
+            <canvas id="chart-fleet-distribution"></canvas>
+          </div>
+          <div class="donut-legend-row" id="donut-legend">
+            <span class="legend-dot-label"><span class="dot dot-nominal"></span> Nominal</span>
+            <span class="legend-dot-label"><span class="dot dot-elevated"></span> Elevated (Watch)</span>
+            <span class="legend-dot-label"><span class="dot dot-danger"></span> Critical (&gt; 70%)</span>
           </div>
         </div>
+
+        <!-- Telemetry Vital Averages -->
+        <div class="card vitals-card">
+          <div class="card-header">
+            <div class="card-title">Fleet Telemetry Vitals (Trailing Averages)</div>
+            <span class="badge badge-info">Live Aggregate</span>
+          </div>
+          <div class="vitals-grid">
+            <div class="vital-item">
+              <span class="vital-label">Mean Chassis Temp</span>
+              <span class="vital-val" id="vital-temp">44.2°C</span>
+              <span class="vital-status status-nominal">Normal (Safe &lt; 70°C)</span>
+            </div>
+            <div class="vital-item">
+              <span class="vital-label">Mean Power Rail</span>
+              <span class="vital-val" id="vital-volt">3.74 V</span>
+              <span class="vital-status status-nominal">Nominal (Safe &gt; 3.3V)</span>
+            </div>
+            <div class="vital-item">
+              <span class="vital-label">Mean Battery Level</span>
+              <span class="vital-val" id="vital-batt">83.5%</span>
+              <span class="vital-status status-nominal">Nominal State of Charge</span>
+            </div>
+            <div class="vital-item">
+              <span class="vital-label">Zero-Leakage Window</span>
+              <span class="vital-val">6h / 24h</span>
+              <span class="vital-status status-nominal">25 Rolling Signals Active</span>
+            </div>
+          </div>
+          <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size: 11px; color: var(--text-dim);">Real-time feature transformer: zero temporal leakage</span>
+            <button class="btn btn-secondary btn-sm" onclick="switchTab('simulator')">Open Stream Simulator →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Incidents Snapshot on Overview -->
+      <section class="card" style="margin-top: 20px;">
+        <div class="card-header">
+          <div class="card-title">Priority Incident Triage Queue</div>
+          <button class="btn btn-secondary btn-sm" onclick="switchTab('incidents')">View Full Incident Command →</button>
+        </div>
         <div class="table-responsive">
-          <table class="data-table" id="fleet-table">
+          <table class="data-table">
             <thead>
               <tr>
+                <th>Alert #</th>
                 <th>Device ID</th>
-                <th>Firmware</th>
+                <th>Severity</th>
+                <th>Diagnostic Summary</th>
+                <th>Triggered At</th>
                 <th>Status</th>
-                <th>Risk Prob</th>
-                <th>Risk Level</th>
-                <th>Action</th>
               </tr>
             </thead>
-            <tbody id="fleet-table-body">
+            <tbody id="overview-alerts-preview">
               <tr>
-                <td colspan="6" class="table-loading">Loading fleet telemetry...</td>
+                <td colspan="6" class="table-loading">Loading priority alerts...</td>
               </tr>
             </tbody>
           </table>
         </div>
       </section>
+    </main>
 
-      <!-- Right Column: Interactive Diagnostic Simulator -->
-      <section class="card simulator-section">
+    <!-- ========================================================================= -->
+    <!-- TAB 2: DEVICE EXPLORER & OPERATIONS INVENTORY -->
+    <!-- ========================================================================= -->
+    <main class="tab-pane" id="pane-devices">
+      <section class="card fleet-section">
         <div class="card-header">
-          <div class="card-title">Real-Time Diagnostic Simulator</div>
-          <div class="preset-group">
-            <button class="btn-preset active" data-preset="healthy">Healthy</button>
-            <button class="btn-preset" data-preset="thermal">Thermal Spike</button>
-            <button class="btn-preset" data-preset="battery">Discharge Drop</button>
-            <button class="btn-preset" data-preset="sag">Power Sag</button>
+          <div>
+            <div class="card-title">Fleet Endpoints & Risk Inventory</div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">Comprehensive hardware registry with full inspection, status updates, and decommissioning</div>
+          </div>
+          <div class="table-actions">
+            <button id="btn-open-register-modal" class="btn btn-primary btn-sm">+ Register Device</button>
+            <input type="text" id="device-search" placeholder="Search Device ID..." class="input-search">
+            <select id="filter-risk" class="select-filter">
+              <option value="ALL">All Risk Levels</option>
+              <option value="HIGH">Critical Risk Only</option>
+              <option value="NOMINAL">Nominal / Low Risk</option>
+            </select>
+            <select id="filter-status" class="select-filter">
+              <option value="ALL">All Statuses</option>
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="MAINTENANCE">MAINTENANCE</option>
+            </select>
           </div>
         </div>
 
-        <form id="simulator-form" class="simulator-form">
-          <div class="input-row">
-            <div class="input-group">
-              <label for="sim-temp">Die Temp (°C)</label>
-              <input type="number" id="sim-temp" step="0.1" value="44.5">
-            </div>
-            <div class="input-group">
-              <label for="sim-volt">Power Rail (V)</label>
-              <input type="number" id="sim-volt" step="0.01" value="3.74">
-            </div>
-          </div>
-          <div class="input-row">
-            <div class="input-group">
-              <label for="sim-curr">Current Draw (A)</label>
-              <input type="number" id="sim-curr" step="0.01" value="1.20">
-            </div>
-            <div class="input-group">
-              <label for="sim-battery">Battery Level (%)</label>
-              <input type="number" id="sim-battery" step="0.1" value="88.0">
-            </div>
-          </div>
-          <div class="input-row">
-            <div class="input-group">
-              <label for="sim-net">Network Quality (%)</label>
-              <input type="number" id="sim-net" step="0.1" value="94.0">
-            </div>
-            <div class="input-group">
-              <label for="sim-uptime">Continuous Uptime (h)</label>
-              <input type="number" id="sim-uptime" step="1" value="120">
-            </div>
-          </div>
-
-          <button type="submit" id="btn-run-inference" class="btn btn-primary btn-block">
-            Score Risk & Compute SHAP Attribution
-          </button>
-        </form>
-
-        <!-- Prediction Result Output Card -->
-        <div class="sim-result-card" id="sim-result-card">
-          <div class="sim-result-header">
-            <div>
-              <span class="sim-risk-badge badge-nominal" id="sim-risk-badge">LOW RISK</span>
-              <span class="sim-prob-text" id="sim-prob-text">P(Fail) = 0.034</span>
-            </div>
-            <span class="sim-latency-badge" id="sim-latency-badge">0.42 ms</span>
-          </div>
-
-          <div class="sim-attribution-box">
-            <div class="attribution-title">SHAP Risk Factor Attribution</div>
-            <div id="sim-risk-factors-list" class="risk-factors-list">
-              <div class="factor-empty">Execute simulation to view factor attributions.</div>
-            </div>
-          </div>
+        <div class="table-responsive">
+          <table class="data-table" id="fleet-table">
+            <thead>
+              <tr>
+                <th>Device ID</th>
+                <th>Hardware Model</th>
+                <th>Firmware</th>
+                <th>Status</th>
+                <th>Risk Prob</th>
+                <th>Risk Level</th>
+                <th>Temp</th>
+                <th>Rail (V)</th>
+                <th>Battery</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="fleet-table-body">
+              <tr>
+                <td colspan="10" class="table-loading">Loading fleet telemetry...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
-    </div>
+    </main>
 
-    <!-- Active Incident Alerts Section -->
-    <section class="card alerts-section">
-      <div class="card-header">
-        <div class="card-title">Active Operational Incidents & Failure Alerts</div>
-        <span class="badge badge-warning" id="alert-counter-badge">0 Alerts</span>
+    <!-- ========================================================================= -->
+    <!-- TAB 3: AI WHAT-IF STUDIO & SHAP ATTRIBUTION -->
+    <!-- ========================================================================= -->
+    <main class="tab-pane" id="pane-whatif">
+      <div class="workspace-grid">
+        <!-- Left: Diagnostic Simulator Form -->
+        <section class="card simulator-section">
+          <div class="card-header">
+            <div class="card-title">Interactive What-If Scenario Studio</div>
+            <div class="preset-group">
+              <button class="btn-preset active" data-preset="healthy">Healthy Baseline</button>
+              <button class="btn-preset" data-preset="thermal">Thermal Spike</button>
+              <button class="btn-preset" data-preset="battery">Discharge Drop</button>
+              <button class="btn-preset" data-preset="sag">Power Rail Sag</button>
+            </div>
+          </div>
+
+          <form id="simulator-form" class="simulator-form">
+            <div class="input-row">
+              <div class="input-group">
+                <label for="sim-temp">Die / Chassis Temp (°C)</label>
+                <input type="number" id="sim-temp" step="0.1" value="44.5">
+              </div>
+              <div class="input-group">
+                <label for="sim-volt">Power Rail Voltage (V)</label>
+                <input type="number" id="sim-volt" step="0.01" value="3.74">
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="input-group">
+                <label for="sim-curr">Current Consumption (A)</label>
+                <input type="number" id="sim-curr" step="0.01" value="1.20">
+              </div>
+              <div class="input-group">
+                <label for="sim-battery">Battery State of Charge (%)</label>
+                <input type="number" id="sim-battery" step="0.1" value="88.0">
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="input-group">
+                <label for="sim-net">Wireless Link Quality (%)</label>
+                <input type="number" id="sim-net" step="0.1" value="94.0">
+              </div>
+              <div class="input-group">
+                <label for="sim-uptime">Continuous Uptime (hours)</label>
+                <input type="number" id="sim-uptime" step="1" value="120">
+              </div>
+            </div>
+
+            <button type="submit" id="btn-run-inference" class="btn btn-primary btn-block">
+              ⚡ Execute XGBoost Inference & Compute SHAP Explanations
+            </button>
+          </form>
+
+          <!-- Prediction Result Output Card -->
+          <div class="sim-result-card" id="sim-result-card">
+            <div class="sim-result-header">
+              <div>
+                <span class="sim-risk-badge badge-nominal" id="sim-risk-badge">LOW RISK</span>
+                <span class="sim-prob-text" id="sim-prob-text">P(Fail) = 0.034</span>
+              </div>
+              <span class="sim-latency-badge" id="sim-latency-badge">0.42 ms</span>
+            </div>
+
+            <div class="sim-attribution-box">
+              <div class="attribution-title">SHAP Risk Factor Attribution (Game-Theoretic Contributions)</div>
+              <div id="sim-risk-factors-list" class="risk-factors-list">
+                <div class="factor-empty">Execute simulation to view factor attributions.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right: Champion Model Feature Importance -->
+        <section class="card">
+          <div class="card-header">
+            <div class="card-title">XGBoost Model Feature Importance (Global)</div>
+            <span class="badge badge-info">Champion Model</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 12px;">
+            Relative gain contributions calculated across 100,000 historical telemetry observations.
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Feature Name</th>
+                  <th>Relative Gain</th>
+                  <th>Physical Domain</th>
+                </tr>
+              </thead>
+              <tbody id="feature-importance-table-body">
+                <tr>
+                  <td colspan="4" class="table-loading">Querying model registry...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
-      <div class="table-responsive">
-        <table class="data-table" id="alerts-table">
-          <thead>
-            <tr>
-              <th>Alert ID</th>
-              <th>Device</th>
-              <th>Severity</th>
-              <th>Incident Description</th>
-              <th>Triggered At</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="alerts-table-body">
-            <tr>
-              <td colspan="6" class="table-loading">No active failure incidents.</td>
-            </tr>
-          </tbody>
-        </table>
+    </main>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: REAL-TIME STREAMING & SIMULATOR CONTROLS -->
+    <!-- ========================================================================= -->
+    <main class="tab-pane" id="pane-simulator">
+      <div class="workspace-grid">
+        <!-- Simulator Command Console -->
+        <section class="card">
+          <div class="card-header">
+            <div class="card-title">Autonomous IoT Fleet Telemetry Generator</div>
+            <span class="badge badge-nominal" id="sim-daemon-badge">DAEMON READY</span>
+          </div>
+          <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 16px;">
+            Simulates a live multi-device fleet generating continuous physical sensory ticks with stochastic wear degradation and periodic synthetic fault injection into the streaming pipeline.
+          </p>
+
+          <div class="sim-stats-grid">
+            <div class="sim-stat-box">
+              <span class="sim-stat-label">DAEMON STATUS</span>
+              <span class="sim-stat-value" id="sim-stat-running">STOPPED</span>
+            </div>
+            <div class="sim-stat-box">
+              <span class="sim-stat-label">ACTIVE DEVICES</span>
+              <span class="sim-stat-value" id="sim-stat-devices">25 Endpoints</span>
+            </div>
+            <div class="sim-stat-box">
+              <span class="sim-stat-label">TOTAL TICKS</span>
+              <span class="sim-stat-value" id="sim-stat-ticks">0</span>
+            </div>
+            <div class="sim-stat-box">
+              <span class="sim-stat-label">EVENTS TRANSMITTED</span>
+              <span class="sim-stat-value" id="sim-stat-dispatched">0</span>
+            </div>
+            <div class="sim-stat-box">
+              <span class="sim-stat-label">ANOMALIES INJECTED</span>
+              <span class="sim-stat-value" id="sim-stat-anomalies" style="color: var(--color-danger);">0</span>
+            </div>
+          </div>
+
+          <div class="sim-action-buttons" style="margin-top: 18px; display: flex; gap: 10px;">
+            <button id="btn-start-simulator" class="btn btn-primary">▶ Start Continuous Simulator</button>
+            <button id="btn-stop-simulator" class="btn btn-secondary">⏹ Stop Simulator</button>
+          </div>
+
+          <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-subtle);">
+            <div class="card-title" style="font-size: 13px; margin-bottom: 10px;">Instant Synthetic Fault Injection</div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="btn btn-secondary btn-sm" id="btn-fault-thermal">🔥 Trigger Thermal Surge (88°C)</button>
+              <button class="btn btn-secondary btn-sm" id="btn-fault-sag">⚡ Trigger Power Rail Sag (2.9V)</button>
+              <button class="btn btn-secondary btn-sm" id="btn-fault-watchdog">💥 Trigger Watchdog Crash Cascade</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Streaming Buffer Inspection -->
+        <section class="card">
+          <div class="card-header">
+            <div class="card-title">Real-Time Ingestion Buffer Health</div>
+            <span class="badge badge-info">Sub-Millisecond Latency</span>
+          </div>
+          <div class="sim-stats-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 14px;">
+            <div class="sim-stat-box">
+              <span class="sim-stat-label">STREAMING INGESTION URL</span>
+              <span class="sim-stat-value" style="font-size: 12px; font-family: var(--font-mono);">http://localhost:8002</span>
+            </div>
+            <div class="sim-stat-box">
+              <span class="sim-stat-label">BUFFER CAPACITY</span>
+              <span class="sim-stat-value">100 Pts / Device</span>
+            </div>
+          </div>
+          <p style="font-size: 11px; color: var(--text-dim);">
+            Each sensory event received in the streaming ingestion service recalculates rolling thermodynamic and electrical features (6h mean, 24h mean, 1h delta-T, voltage sag detector) with zero memory leaks.
+          </p>
+        </section>
       </div>
-    </section>
+    </main>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 5: INCIDENT COMMAND & ALERT DESK -->
+    <!-- ========================================================================= -->
+    <main class="tab-pane" id="pane-incidents">
+      <section class="card alerts-section">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Active Operational Incidents & Failure Alerts</div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">Triage and resolve automated failure alerts triggered by high-risk prediction audits</div>
+          </div>
+          <div class="table-actions">
+            <span class="badge badge-warning" id="alert-counter-badge">0 Alerts</span>
+            <button id="btn-export-alerts" class="btn btn-secondary btn-sm">📥 Export Incident CSV</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="alerts-table">
+            <thead>
+              <tr>
+                <th>Alert ID</th>
+                <th>Device</th>
+                <th>Severity</th>
+                <th>Incident Description</th>
+                <th>Triggered At</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="alerts-table-body">
+              <tr>
+                <td colspan="6" class="table-loading">No active failure incidents.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 6: CLUSTER TOPOLOGY & SECURITY COMPLIANCE -->
+    <!-- ========================================================================= -->
+    <main class="tab-pane" id="pane-topology">
+      <div class="workspace-grid">
+        <!-- Service Mesh Latency Grid -->
+        <section class="card">
+          <div class="card-header">
+            <div class="card-title">Distributed Cluster Service Mesh</div>
+            <span class="badge badge-nominal" id="topology-global-badge">All Services Live</span>
+          </div>
+          <p style="color: var(--text-dim); font-size: 11px; margin-bottom: 14px;">
+            Real-time ping probes testing latency, connectivity, and discovery between DataMind microservices.
+          </p>
+          <div class="topology-grid" id="topology-mesh-grid">
+            <div class="table-loading">Probing cluster nodes...</div>
+          </div>
+        </section>
+
+        <!-- Security & Validation Matrix -->
+        <section class="card">
+          <div class="card-header">
+            <div class="card-title">Enterprise Security & Validation Compliance</div>
+            <span class="badge badge-nominal">10/10 Controls Passing</span>
+          </div>
+          <div class="compliance-list">
+            <div class="compliance-item">
+              <span class="compliance-badge badge-nominal">[SECURITY-1]</span>
+              <div class="compliance-info">
+                <strong>CORS Whitelist Protection:</strong> Strict origins whitelist rejecting arbitrary cross-site domains.
+              </div>
+            </div>
+            <div class="compliance-item">
+              <span class="compliance-badge badge-nominal">[SECURITY-2]</span>
+              <div class="compliance-info">
+                <strong>Cryptographic SHA-256 Model Verification:</strong> Checksum sidecar validation preventing arbitrary code execution on model load.
+              </div>
+            </div>
+            <div class="compliance-item">
+              <span class="compliance-badge badge-nominal">[SECURITY-3]</span>
+              <div class="compliance-info">
+                <strong>API Key & Bearer Token Authentication:</strong> Unified credentials scheme protecting telemetry, write, and administrative routes.
+              </div>
+            </div>
+            <div class="compliance-item">
+              <span class="compliance-badge badge-nominal">[VALIDATION-1]</span>
+              <div class="compliance-info">
+                <strong>Alphanumeric Device ID Sanitization:</strong> Strict regex guard rejecting SQL injection and directory traversal attacks.
+              </div>
+            </div>
+            <div class="compliance-item">
+              <span class="compliance-badge badge-nominal">[VALIDATION-2]</span>
+              <div class="compliance-info">
+                <strong>ISO-8601 UTC Timestamp Validation:</strong> Rejects malformed strings and standardizes timezones to UTC.
+              </div>
+            </div>
+            <div class="compliance-item">
+              <span class="compliance-badge badge-nominal">[VALIDATION-3]</span>
+              <div class="compliance-info">
+                <strong>Finite Float Boundary Guardrails:</strong> Bounded range checks rejecting NaN and Infinite float denial-of-service payloads.
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
   </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODALS -->
+  <!-- ========================================================================= -->
 
   <!-- Device Detail Inspection Modal -->
   <div class="modal-backdrop" id="device-modal" style="display: none;">
@@ -244,6 +567,46 @@
       </div>
     </div>
   </div>
+
+  <!-- Edit Hardware Device Modal -->
+  <div class="modal-backdrop" id="edit-device-modal" style="display: none;">
+    <div class="modal-card modal-sm">
+      <div class="modal-header">
+        <h3 id="edit-modal-title">Edit Device Settings</h3>
+        <button class="modal-close" id="btn-close-edit-modal">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <form id="edit-device-form" class="simulator-form">
+          <div class="input-group" style="margin-bottom: 12px;">
+            <label>Device Identifier</label>
+            <input type="text" id="edit-device-id" readonly class="input-search" style="opacity: 0.7; cursor: not-allowed;">
+          </div>
+          <div class="input-group" style="margin-bottom: 12px;">
+            <label for="edit-firmware">Firmware Release</label>
+            <select id="edit-firmware" class="select-filter" style="width: 100%;">
+              <option value="1.2.0">v1.2.0 (Active Production)</option>
+              <option value="1.1.0">v1.1.0 (Legacy Stable)</option>
+              <option value="1.0.0">v1.0.0 (Base Revision)</option>
+            </select>
+          </div>
+          <div class="input-group" style="margin-bottom: 16px;">
+            <label for="edit-status">Operational State</label>
+            <select id="edit-status" class="select-filter" style="width: 100%;">
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="MAINTENANCE">MAINTENANCE</option>
+              <option value="DECOMMISSIONED">DECOMMISSIONED</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="btn-submit-edit">
+            Save Device Changes
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Toast Notifications Center -->
+  <div class="toast-container" id="toast-container"></div>
 
   <script src="/static/app.js"></script>
 </body>

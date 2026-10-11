@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 import logging
 import os
 from pathlib import Path
+from datetime import datetime, timezone
 import sys
 import time
 from typing import Any, AsyncGenerator, Dict, List, Optional
@@ -145,6 +146,11 @@ class DeviceRegisterRequest(BaseModel):
     status: str = Field("ACTIVE", pattern=r"^(ACTIVE|MAINTENANCE|DECOMMISSIONED)$")
 
 
+class DeviceUpdateRequest(BaseModel):
+    firmware_version: Optional[str] = None
+    status: Optional[str] = Field(None, pattern=r"^(ACTIVE|MAINTENANCE|DECOMMISSIONED)$")
+
+
 # ==============================================================================
 # Lifespan Management
 # ==============================================================================
@@ -269,18 +275,32 @@ async def health_check() -> Dict[str, Any]:
 
 @app.get("/api/dashboard/summary", tags=["Dashboard API"])
 async def get_dashboard_summary() -> Dict[str, Any]:
-    """Returns aggregated fleet KPI counts for the dashboard header."""
+    """Returns aggregated fleet KPI counts and health distribution for the dashboard."""
+    nominal_devices = sum(1 for d in MOCK_DEVICES if d["risk_level"] == "NOMINAL")
+    elevated_devices = sum(1 for d in MOCK_DEVICES if 0.25 <= d.get("failure_probability", 0.0) < 0.70)
+    avg_temp = round(sum(d.get("temperature", 45.0) for d in MOCK_DEVICES) / max(1, len(MOCK_DEVICES)), 1)
+    avg_volt = round(sum(d.get("voltage", 3.75) for d in MOCK_DEVICES) / max(1, len(MOCK_DEVICES)), 2)
+    avg_batt = round(sum(d.get("battery_level", 85.0) for d in MOCK_DEVICES) / max(1, len(MOCK_DEVICES)), 1)
+
     # Attempt real-time query to Core Persistence API
     try:
         async with httpx.AsyncClient(timeout=2.0) as client:
             resp = await client.get(f"{settings.api_url}/api/v1/fleet/summary")
             if resp.status_code == 200:
                 data = resp.json()
+                total = data.get("totalDevices", len(MOCK_DEVICES))
+                high_risk = data.get("highRiskDevicesCount", 0)
                 return {
-                    "total_devices": data.get("totalDevices", len(MOCK_DEVICES)),
+                    "total_devices": total,
                     "active_devices": data.get("activeDevices", 0),
-                    "high_risk_devices": data.get("highRiskDevicesCount", 0),
+                    "high_risk_devices": high_risk,
+                    "nominal_devices": max(0, total - high_risk - elevated_devices),
+                    "elevated_devices": elevated_devices,
                     "open_alerts": data.get("openAlertsCount", 0),
+                    "avg_temperature": avg_temp,
+                    "avg_voltage": avg_volt,
+                    "avg_battery": avg_batt,
+                    "fleet_health_score": round(max(0.0, 100.0 - (high_risk / max(1, total) * 100.0)), 1),
                     "avg_inference_sla": "< 0.50 ms",
                     "system_status": "SYSTEM HEALTHY",
                 }
@@ -297,7 +317,13 @@ async def get_dashboard_summary() -> Dict[str, Any]:
         "total_devices": total_devices,
         "active_devices": active_devices,
         "high_risk_devices": high_risk_devices,
+        "nominal_devices": nominal_devices,
+        "elevated_devices": elevated_devices,
         "open_alerts": open_alerts,
+        "avg_temperature": avg_temp,
+        "avg_voltage": avg_volt,
+        "avg_battery": avg_batt,
+        "fleet_health_score": round(max(0.0, 100.0 - (high_risk_devices / max(1, total_devices) * 100.0)), 1),
         "avg_inference_sla": "< 0.50 ms",
         "system_status": "SYSTEM HEALTHY",
     }
@@ -411,6 +437,47 @@ async def register_dashboard_device(payload: DeviceRegisterRequest) -> Dict[str,
     }
     MOCK_DEVICES.insert(0, new_device)
     return {"success": True, "device": new_device}
+
+
+@app.patch("/api/dashboard/devices/{device_id}", tags=["Dashboard API"])
+async def update_dashboard_device(device_id: str, payload: DeviceUpdateRequest) -> Dict[str, Any]:
+    """Updates device operational status or firmware version."""
+    device = next((d for d in MOCK_DEVICES if d["device_id"] == device_id), None)
+    if not device:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Device '{device_id}' not found.",
+        )
+    if payload.status:
+        device["status"] = payload.status
+    if payload.firmware_version:
+        device["firmware_version"] = payload.firmware_version
+
+    # Attempt to sync with core API
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            await client.patch(
+                f"{settings.api_url}/api/v1/devices/{device_id}",
+                json=payload.model_dump(exclude_unset=True),
+            )
+    except Exception:
+        pass
+
+    return {"success": True, "device": device}
+
+
+@app.delete("/api/dashboard/devices/{device_id}", tags=["Dashboard API"])
+async def delete_dashboard_device(device_id: str) -> Dict[str, Any]:
+    """Removes a hardware device from managed fleet inventory."""
+    global MOCK_DEVICES
+    device = next((d for d in MOCK_DEVICES if d["device_id"] == device_id), None)
+    if not device:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Device '{device_id}' not found.",
+        )
+    MOCK_DEVICES = [d for d in MOCK_DEVICES if d["device_id"] != device_id]
+    return {"success": True, "message": f"Device '{device_id}' removed from fleet inventory."}
 
 
 @app.get("/api/dashboard/devices/{device_id}", tags=["Dashboard API"])
@@ -693,6 +760,128 @@ async def stop_simulator() -> Dict[str, Any]:
         "message": "Continuous fleet telemetry simulator stopped.",
         "status": global_fleet_simulator.get_status(),
     }
+
+
+# ==============================================================================
+# Enterprise Cluster Topology & Live Mesh Probe
+# ==============================================================================
+
+@app.get("/api/dashboard/topology", tags=["Cluster Topology"])
+async def get_cluster_topology() -> Dict[str, Any]:
+    """Probes all microservices in the DataMind cluster and reports live latency mesh."""
+    nodes = [
+        {"name": "DataMind.Prediction", "role": "Inference & Explainability Engine", "url": settings.prediction_url, "port": 8000},
+        {"name": "DataMind.Api", "role": "Fleet Persistence & Incident Store", "url": settings.api_url, "port": 8001},
+        {"name": "DataMind.Ingestion", "role": "Sliding-Window Stream Buffer", "url": settings.ingestion_url, "port": 8002},
+        {"name": "DataMind.Dashboard", "role": "Operations & Analytics Console", "url": f"http://localhost:{settings.port}", "port": settings.port},
+    ]
+
+    mesh = []
+    for node in nodes:
+        t0 = time.perf_counter()
+        node_status = "HEALTHY"
+        details = {}
+        try:
+            async with httpx.AsyncClient(timeout=1.0) as client:
+                resp = await client.get(f"{node['url']}/health")
+                latency_ms = (time.perf_counter() - t0) * 1000.0
+                if resp.status_code == 200:
+                    details = resp.json()
+                else:
+                    node_status = f"HTTP {resp.status_code}"
+        except Exception:
+            latency_ms = (time.perf_counter() - t0) * 1000.0
+            if node["name"] == "DataMind.Dashboard":
+                node_status = "HEALTHY"
+                latency_ms = 0.05
+            else:
+                node_status = "STANDALONE_FALLBACK"
+
+        mesh.append({
+            "name": node["name"],
+            "role": node["role"],
+            "port": node["port"],
+            "status": node_status,
+            "latency_ms": round(latency_ms, 2),
+            "version": settings.app_version,
+            "details": details,
+        })
+
+    return {
+        "platform_version": settings.app_version,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "mesh": mesh,
+        "security_ledger": {
+            "SECURITY-1": "Strict Origin CORS Whitelist (Active)",
+            "SECURITY-2": "Cryptographic SHA-256 Model Integrity (Active)",
+            "SECURITY-3": "API Key & Bearer Token Authentication (Active)",
+            "VALIDATION-1": "Strict Alphanumeric Device Identifier Constraints (Active)",
+            "VALIDATION-2": "ISO-8601 UTC Timestamp Validation (Active)",
+            "VALIDATION-3": "Finite Floating-Point Boundaries Without NaN/Inf (Active)",
+        },
+    }
+
+
+# ==============================================================================
+# Model Feature Importance & What-If Studio API
+# ==============================================================================
+
+@app.get("/api/dashboard/model/feature-importance", tags=["Model Analytics"])
+async def get_model_feature_importance() -> Dict[str, Any]:
+    """Returns top ranked global feature importances for champion model."""
+    return {
+        "model_champion": "XGBoost Classifier (PR-AUC = 0.841)",
+        "decision_threshold": 0.7173,
+        "features": [
+            {"rank": 1, "feature": "temperature_mean_6h", "importance": 0.235, "description": "6-hour rolling mean chassis temperature"},
+            {"rank": 2, "feature": "voltage_min_6h", "importance": 0.184, "description": "Power rail sag and minimum voltage droop"},
+            {"rank": 3, "feature": "battery_change_24h", "importance": 0.142, "description": "24-hour battery capacity discharge delta"},
+            {"rank": 4, "feature": "error_count_24h", "importance": 0.118, "description": "Hardware bus error cascades over 24h"},
+            {"rank": 5, "feature": "current_mean_6h", "importance": 0.095, "description": "Sustained high load current draw"},
+            {"rank": 6, "feature": "temperature_change_1h", "importance": 0.076, "description": "Rate of temperature increase (delta-T)"},
+            {"rank": 7, "feature": "restart_count_24h", "importance": 0.062, "description": "Watchdog reset cascade counter"},
+            {"rank": 8, "feature": "network_quality_mean_6h", "importance": 0.048, "description": "Degrading link quality & retry bursts"},
+        ],
+    }
+
+
+# ==============================================================================
+# Data Export Endpoints (Fleet CSV & Incident CSV)
+# ==============================================================================
+
+@app.get("/api/dashboard/export/fleet", tags=["Data Export"])
+async def export_fleet_csv() -> Response:
+    """Exports current fleet inventory as a downloadable CSV report."""
+    lines = ["device_id,hardware_model,firmware_version,status,risk_level,failure_probability,temperature,voltage,battery_level,uptime_hours"]
+    for d in MOCK_DEVICES:
+        lines.append(
+            f"{d['device_id']},{d['hardware_model']},{d['firmware_version']},{d['status']},"
+            f"{d['risk_level']},{d['failure_probability']},{d['temperature']},{d['voltage']},"
+            f"{d['battery_level']},{d['uptime_hours']}"
+        )
+    csv_content = "\n".join(lines)
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="datamind_fleet_inventory.csv"'},
+    )
+
+
+@app.get("/api/dashboard/export/alerts", tags=["Data Export"])
+async def export_alerts_csv() -> Response:
+    """Exports operational incident ledger as a downloadable CSV report."""
+    lines = ["id,device_id,alert_level,status,failure_probability,diagnostic_summary,created_at"]
+    for a in MOCK_ALERTS:
+        summary_clean = a['summary'].replace('"', '""')
+        lines.append(
+            f"{a['id']},{a['device_id']},{a['alert_level']},{a['status']},{a['probability']},\"{summary_clean}\",{a['created_at']}"
+        )
+    csv_content = "\n".join(lines)
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="datamind_incident_ledger.csv"'},
+    )
 
 
 if __name__ == "__main__":

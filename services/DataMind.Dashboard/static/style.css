@@ -830,6 +830,297 @@ body {
 }
 
 /* ==============================================================================
+   Enterprise Navigation Tabs & Multi-View Architecture
+   ============================================================================== */
+.nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-secondary);
+  padding: 4px 6px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.nav-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.nav-tab-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-tab-btn.active {
+  color: #fff;
+  background: var(--color-primary);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
+}
+
+.tab-icon {
+  font-size: 13px;
+}
+
+/* Tab Panes */
+.tab-pane {
+  display: none;
+  animation: tabFadeIn 0.2s ease forwards;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+@keyframes tabFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mission Control Overview */
+.overview-analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.donut-legend-row {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.legend-dot-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-nominal { background: var(--color-success); }
+.dot-elevated { background: var(--color-warning); }
+.dot-danger { background: var(--color-danger); }
+
+/* Vitals Grid */
+.vitals-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.vital-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vital-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.vital-val {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-main);
+}
+
+.vital-status {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.status-nominal {
+  color: var(--color-success);
+}
+
+/* Sim Stats Grid */
+.sim-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.sim-stat-box {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sim-stat-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.sim-stat-value {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-main);
+}
+
+/* Topology Mesh Grid */
+.topology-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.topology-node-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+
+.topology-node-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.topology-node-name {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-main);
+}
+
+.topology-node-role {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.topology-node-latency {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-accent);
+}
+
+/* Compliance List */
+.compliance-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.compliance-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.compliance-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.compliance-info {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.compliance-info strong {
+  color: var(--text-main);
+}
+
+/* Toast Notifications Container */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-card);
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: toastSlideIn 0.25s ease;
+  min-width: 260px;
+}
+
+.toast.toast-success { border-left: 4px solid var(--color-success); }
+.toast.toast-danger { border-left: 4px solid var(--color-danger); }
+.toast.toast-warning { border-left: 4px solid var(--color-warning); }
+.toast.toast-info { border-left: 4px solid var(--color-primary); }
+
+@keyframes toastSlideIn {
+  from { transform: translateX(40px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.btn-icon-only {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+}
+
+/* ==============================================================================
    Responsive Layout Breakpoints
    ============================================================================== */
 @media (max-width: 1024px) {
