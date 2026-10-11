@@ -220,7 +220,7 @@ D:\DataMind
 * **Machine Learning & Data:** Python 3.11, pandas, NumPy, scikit-learn, XGBoost, SHAP, MLflow.
 * **Serving & Backend:** FastAPI, SQLAlchemy 2.0, asyncpg, aiosqlite, Pydantic.
 * **Storage & Messaging:** PostgreSQL, Redis, Asyncio Queues.
-* **Observability & Ops:** Docker Compose, Kubernetes, Prometheus, Grafana, GitHub Actions.
+* **Observability & Ops:** Docker Compose, Kubernetes, Prometheus, Grafana, OpenTelemetry, GitHub Actions.
 
 ---
 
@@ -237,3 +237,4 @@ We welcome contributions from the global engineering community! To maintain plat
 
 This project is licensed under the MIT License — see the [`LICENSE`](LICENSE) file for details.
 Copyright (c) 2026 Faizal Khan.
+
