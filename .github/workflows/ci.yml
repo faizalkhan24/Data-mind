@@ -1,0 +1,105 @@
+name: DataMind Continuous Integration (CI)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  lint-and-validate:
+    name: Code Linting & Manifest Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Linting Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pyyaml
+
+      - name: Python Syntax and PEP8 Check
+        run: |
+          # Stop build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=.venv,data
+          # Exit-zero for style warnings to keep CI actionable
+          flake8 . --count --exit-zero --max-complexity=15 --max-line-length=120 --statistics --exclude=.venv,data
+
+      - name: Validate Kubernetes Manifests Syntax
+        run: |
+          python -c "
+          import glob, yaml
+          for f in glob.glob('infrastructure/k8s/*.yaml'):
+              with open(f, 'r') as stream:
+                  list(yaml.safe_load_all(stream))
+              print(f'Valid YAML: {f}')
+          "
+
+  test-suite:
+    name: Python Test Suite (Python ${{ matrix.python-version }})
+    needs: [lint-and-validate]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y libgomp1
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Execute Full DataMind Test Suite
+        env:
+          PYTHONPATH: "."
+        run: |
+          python -m unittest discover -s tests -t . -v
+
+  docker-build-check:
+    name: Docker Images Build Verification
+    needs: [lint-and-validate]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [prediction, api, ingestion, dashboard]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: actions/setup-buildx-action@v3
+
+      - name: Build Docker Image (${{ matrix.service }})
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./infrastructure/docker/Dockerfile.${{ matrix.service }}
+          push: false
+          tags: datamind-${{ matrix.service }}:test

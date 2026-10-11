@@ -1,0 +1,122 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: datamind-prediction
+  namespace: datamind
+  labels:
+    app.kubernetes.io/name: datamind-prediction
+    app.kubernetes.io/part-of: datamind
+    app.kubernetes.io/component: prediction
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+  selector:
+    app.kubernetes.io/name: datamind-prediction
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: datamind-prediction
+  namespace: datamind
+  labels:
+    app.kubernetes.io/name: datamind-prediction
+    app.kubernetes.io/part-of: datamind
+    app.kubernetes.io/component: prediction
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: datamind-prediction
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: datamind-prediction
+        app.kubernetes.io/part-of: datamind
+        app.kubernetes.io/component: prediction
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: prediction
+          image: ghcr.io/faizalkhan24/datamind-prediction:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: MODEL_PATH
+              value: "ml/models/best_model_xgboost.joblib"
+            - name: THRESHOLD
+              value: "0.7173"
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: datamind-config
+                  key: LOG_LEVEL
+            - name: ENABLE_PROMETHEUS_METRICS
+              valueFrom:
+                configMapKeyRef:
+                  name: datamind-config
+                  key: ENABLE_PROMETHEUS_METRICS
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1536Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: datamind-prediction-hpa
+  namespace: datamind
+  labels:
+    app.kubernetes.io/name: datamind-prediction-hpa
+    app.kubernetes.io/part-of: datamind
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: datamind-prediction
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 75
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

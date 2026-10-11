@@ -1,0 +1,87 @@
+name: DataMind Continuous Delivery (CD)
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*.*.*" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-and-publish:
+    name: Build & Publish Container Images
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - service: prediction
+            dockerfile: infrastructure/docker/Dockerfile.prediction
+            image_name: datamind-prediction
+          - service: api
+            dockerfile: infrastructure/docker/Dockerfile.api
+            image_name: datamind-api
+          - service: ingestion
+            dockerfile: infrastructure/docker/Dockerfile.ingestion
+            image_name: datamind-ingestion
+          - service: dashboard
+            dockerfile: infrastructure/docker/Dockerfile.dashboard
+            image_name: datamind-dashboard
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: actions/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Metadata (Tags, Labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+            type=semver,pattern={{version}}
+
+      - name: Build and Push Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-staging:
+    name: Kustomize Staging Deployment
+    needs: [build-and-publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v2
+
+      - name: Update Image Tags with Git SHA
+        run: |
+          cd infrastructure/k8s
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          kustomize edit set image ghcr.io/faizalkhan24/datamind-prediction=ghcr.io/${{ github.repository_owner }}/datamind-prediction:${SHORT_SHA}
+          kustomize edit set image ghcr.io/faizalkhan24/datamind-api=ghcr.io/${{ github.repository_owner }}/datamind-api:${SHORT_SHA}
+          kustomize edit set image ghcr.io/faizalkhan24/datamind-ingestion=ghcr.io/${{ github.repository_owner }}/datamind-ingestion:${SHORT_SHA}
+          kustomize edit set image ghcr.io/faizalkhan24/datamind-dashboard=ghcr.io/${{ github.repository_owner }}/datamind-dashboard:${SHORT_SHA}
+          kustomize build . > /tmp/rendered-manifests.yaml
+          echo "Rendered manifests size: $(wc -l < /tmp/rendered-manifests.yaml) lines."

@@ -2,8 +2,8 @@
 
 [![Python 3.11](https://img.shields.io/badge/python-3.11.9-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests: 90 Passing](https://img.shields.io/badge/tests-90%20passed-brightgreen.svg)]()
-[![Status: Phase 4 In Progress](https://img.shields.io/badge/status-13%2F14%20Milestones%20Complete-brightgreen.svg)]()
+[![Tests: 98 Passing](https://img.shields.io/badge/tests-98%20passed-brightgreen.svg)]()
+[![Status: 14/14 Milestones Complete](https://img.shields.io/badge/status-14%2F14%20Milestones%20Complete-brightgreen.svg)]()
 
 **DataMind** is an enterprise-grade predictive intelligence platform designed to demonstrate deep Software Engineering, Data Engineering, and Machine Learning capabilities (Google Software Engineer standard). 
 
@@ -85,7 +85,7 @@ The project is structured into **4 distinct phases** spanning 14 modular milesto
 Phase 1: ML Foundations & Ensembles      ──► [COMPLETED (M1 – M5)]
 Phase 2: Explainability & Serving API    ──► [COMPLETED (M6 – M8)]
 Phase 3: Data Systems & Fleet UI         ──► [COMPLETED (M9 – M11)]   ──► (Full Data Platform)
-Phase 4: Cloud, Observability & CI/CD    ──► [IN PROGRESS (M12 – M14)] ──► (Enterprise Production)
+Phase 4: Cloud, Observability & CI/CD    ──► [COMPLETED (M12 – M14)]  ──► (Enterprise Production)
 ```
 
 ### Roadmap Breakdown:
@@ -97,15 +97,15 @@ Phase 4: Cloud, Observability & CI/CD    ──► [IN PROGRESS (M12 – M14)] �
 | **M3** | **Feature Engineering Pipeline** | Feature Eng | 25 temporal signals (1h, 6h, 24h rolling, rate-of-change, power sag), zero leakage | **Completed** | [`f7002d6`](https://github.com/faizalkhan24/Data-mind/commit/f7002d6) &bull; [Doc](docs/milestones/MILESTONE_3_FEATURE_ENGINEERING.md) |
 | **M4** | **Baseline Failure Models** | ML | Group-aware split (70/15/15), Dummy baselines, Logistic Regression, PR-AUC | **Completed** | [`c34f1aa`](https://github.com/faizalkhan24/Data-mind/commit/c34f1aa) &bull; [Doc](docs/milestones/MILESTONE_4_BASELINE_MODEL_AND_EVALUATION.md) |
 | **M5** | **Advanced Model Progression** | ML | Random Forest vs. XGBoost benchmark, threshold tuning, latency profiling | **Completed** | [`7b1fb6d`](https://github.com/faizalkhan24/Data-mind/commit/7b1fb6d) &bull; [Doc](docs/milestones/MILESTONE_5_MODEL_PROGRESSION.md) |
-| **M6** | **Model Explainability (SHAP)** | ML / XAI | `TreeExplainer`, top-k human risk factor attribution, beeswarm & waterfall plots | **Completed** | [Doc](docs/milestones/MILESTONE_6_MODEL_EXPLAINABILITY.md) |
-| **M7** | **Model Registry & Tracking** | MLOps | MLflow tracking, parameter/metric logging, artifact staging & model promotion | **Completed** | [Doc](docs/milestones/MILESTONE_7_MODEL_REGISTRY.md) |
-| **M8** | **Real-Time Prediction API** | Backend / SWE | FastAPI inference server, in-memory model cache, sub-5ms SLA, Pydantic DTOs | **Completed** | [Doc](docs/milestones/MILESTONE_8_PREDICTION_API.md) |
-| **M9** | **Database & Persistence Layer** | Backend / Data | SQLAlchemy 2.0 async engine, PostgreSQL/SQLite DDL, async repositories, audit alerts | **Completed** | [Doc](docs/milestones/MILESTONE_9_DATABASE_PERSISTENCE.md) |
-| **M10** | **Streaming Ingestion & Queue** | Data Eng | Real-time sliding window aggregation worker, queue-driven feature computation | **Completed** | [Doc](docs/milestones/MILESTONE_10_STREAMING_INGESTION.md) |
+| **M6** | **Model Explainability (SHAP)** | ML / XAI | `TreeExplainer`, top-k human risk factor attribution, beeswarm & waterfall plots | **Completed** | [`48bf1a7`](https://github.com/faizalkhan24/Data-mind/commit/48bf1a7) &bull; [Doc](docs/milestones/MILESTONE_6_MODEL_EXPLAINABILITY.md) |
+| **M7** | **Model Registry & Tracking** | MLOps | MLflow tracking, parameter/metric logging, artifact staging & model promotion | **Completed** | [`e8b226e`](https://github.com/faizalkhan24/Data-mind/commit/e8b226e) &bull; [Doc](docs/milestones/MILESTONE_7_MODEL_REGISTRY.md) |
+| **M8** | **Real-Time Prediction API** | Backend / SWE | FastAPI inference server, in-memory model cache, sub-5ms SLA, Pydantic DTOs | **Completed** | [`3a89645`](https://github.com/faizalkhan24/Data-mind/commit/3a89645) &bull; [Doc](docs/milestones/MILESTONE_8_PREDICTION_API.md) |
+| **M9** | **Database & Persistence Layer** | Backend / Data | SQLAlchemy 2.0 async engine, PostgreSQL/SQLite DDL, async repositories, audit alerts | **Completed** | [`e499300`](https://github.com/faizalkhan24/Data-mind/commit/e499300) &bull; [Doc](docs/milestones/MILESTONE_9_DATABASE_PERSISTENCE.md) |
+| **M10** | **Streaming Ingestion & Queue** | Data Eng | Real-time sliding window aggregation worker, queue-driven feature computation | **Completed** | [`54341b5`](https://github.com/faizalkhan24/Data-mind/commit/54341b5) &bull; [Doc](docs/milestones/MILESTONE_10_STREAMING_INGESTION.md) |
 | **M11** | **Fleet Health Dashboard** | Frontend | Web operations console, live risk grid, telemetry drawer, diagnostic simulator | **Completed** | [`611b111`](https://github.com/faizalkhan24/Data-mind/commit/611b111) &bull; [Doc](docs/milestones/MILESTONE_11_FLEET_DASHBOARD.md) |
 | **M12** | **Containerization & Compose** | DevOps | Multi-stage Dockerfiles, 1-command local orchestration (`docker compose up`) | **Completed** | [`ce80637`](https://github.com/faizalkhan24/Data-mind/commit/ce80637) &bull; [Doc](docs/milestones/MILESTONE_12_DOCKER_CONTAINERIZATION.md) |
-| **M13** | **Observability & Monitoring** | SRE / DevOps | OpenTelemetry tracing, Prometheus metrics (latency, RPS, drift), Grafana | **Completed** | [Doc](docs/milestones/MILESTONE_13_OBSERVABILITY_MONITORING.md) |
-| **M14** | **Kubernetes & CI/CD Pipelines** | Cloud / SRE | K8s manifests (Deployments, HPA), GitHub Actions automated CI/CD pipeline | **Next** | `.github/workflows/` |
+| **M13** | **Observability & Monitoring** | SRE / DevOps | Prometheus metrics exporter, 5 alerts, Grafana dashboard, sub-5ms SLA tracking | **Completed** | [`a19403a`](https://github.com/faizalkhan24/Data-mind/commit/a19403a) &bull; [Doc](docs/milestones/MILESTONE_13_OBSERVABILITY_MONITORING.md) |
+| **M14** | **Kubernetes & CI/CD Pipelines** | Cloud / SRE | K8s manifests (Deployments, HPA, Ingress, Kustomize), GitHub Actions CI/CD | **Completed** | [`3207cbe`](https://github.com/faizalkhan24/Data-mind/commit/3207cbe) &bull; [Doc](docs/milestones/MILESTONE_14_KUBERNETES_AND_CICD.md) |
 
 ---
 

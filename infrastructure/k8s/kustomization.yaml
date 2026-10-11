@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: datamind
+
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/part-of: datamind
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secrets.yaml
+  - postgres.yaml
+  - redis.yaml
+  - prediction.yaml
+  - api.yaml
+  - ingestion.yaml
+  - dashboard.yaml
+  - ingress.yaml
+
+images:
+  - name: ghcr.io/faizalkhan24/datamind-prediction
+    newTag: v1.0.0
+  - name: ghcr.io/faizalkhan24/datamind-api
+    newTag: v1.0.0
+  - name: ghcr.io/faizalkhan24/datamind-ingestion
+    newTag: v1.0.0
+  - name: ghcr.io/faizalkhan24/datamind-dashboard
+    newTag: v1.0.0

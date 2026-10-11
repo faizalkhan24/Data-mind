@@ -1,0 +1,61 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: datamind-ingress
+  namespace: datamind
+  labels:
+    app.kubernetes.io/name: datamind-ingress
+    app.kubernetes.io/part-of: datamind
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/client-max-body-size: "10m"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+    - host: datamind.local
+      http:
+        paths:
+          - path: /api/v1/predict
+            pathType: Prefix
+            backend:
+              service:
+                name: datamind-prediction
+                port:
+                  number: 8000
+          - path: /api/v1/fleet
+            pathType: Prefix
+            backend:
+              service:
+                name: datamind-api
+                port:
+                  number: 8001
+          - path: /api/v1/devices
+            pathType: Prefix
+            backend:
+              service:
+                name: datamind-api
+                port:
+                  number: 8001
+          - path: /api/v1/alerts
+            pathType: Prefix
+            backend:
+              service:
+                name: datamind-api
+                port:
+                  number: 8001
+          - path: /api/v1/stream
+            pathType: Prefix
+            backend:
+              service:
+                name: datamind-ingestion
+                port:
+                  number: 8002
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: datamind-dashboard
+                port:
+                  number: 8003

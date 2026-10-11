@@ -1,0 +1,117 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: datamind-api
+  namespace: datamind
+  labels:
+    app.kubernetes.io/name: datamind-api
+    app.kubernetes.io/part-of: datamind
+    app.kubernetes.io/component: api
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8001
+      targetPort: 8001
+  selector:
+    app.kubernetes.io/name: datamind-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: datamind-api
+  namespace: datamind
+  labels:
+    app.kubernetes.io/name: datamind-api
+    app.kubernetes.io/part-of: datamind
+    app.kubernetes.io/component: api
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: datamind-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: datamind-api
+        app.kubernetes.io/part-of: datamind
+        app.kubernetes.io/component: api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8001"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/faizalkhan24/datamind-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8001
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: datamind-secrets
+                  key: DATABASE_URL
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: datamind-config
+                  key: LOG_LEVEL
+            - name: ENABLE_PROMETHEUS_METRICS
+              valueFrom:
+                configMapKeyRef:
+                  name: datamind-config
+                  key: ENABLE_PROMETHEUS_METRICS
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 800m
+              memory: 1024Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: datamind-api-hpa
+  namespace: datamind
+  labels:
+    app.kubernetes.io/name: datamind-api-hpa
+    app.kubernetes.io/part-of: datamind
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: datamind-api
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 75
