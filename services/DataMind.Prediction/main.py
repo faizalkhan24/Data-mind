@@ -22,6 +22,9 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response, s
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+import os
+from services.security_auth import verify_api_key  # [SECURITY-3]
+
 _SERVICE_DIR = Path(__file__).resolve().parent
 if str(_SERVICE_DIR) not in sys.path:
     sys.path.insert(0, str(_SERVICE_DIR))
@@ -66,13 +69,22 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Enable CORS for frontend dashboard and developer tools
+# [SECURITY-1]: Whitelist trusted origins instead of wildcard '*'
+_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "DATAMIND_CORS_ORIGINS",
+        os.getenv("ALLOWED_ORIGINS", "http://localhost:8003,http://127.0.0.1:8003,http://localhost:3000,http://127.0.0.1:3000"),
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-API-Key"],
 )
 
 try:
@@ -132,6 +144,7 @@ async def predict_device_failure(
         4, ge=1, le=10, description="Maximum number of risk/mitigating factors to return"
     ),
     engine: PredictionEngine = Depends(get_engine),
+    _auth: bool = Depends(verify_api_key),  # [SECURITY-3]
 ) -> PredictionResponse:
     """Scores real-time device telemetry to predict likelihood of failure within the next 24 hours."""
     try:
@@ -162,6 +175,7 @@ async def predict_batch(
         description="Include SHAP explanations for batch items (default False for batch speed)",
     ),
     engine: PredictionEngine = Depends(get_engine),
+    _auth: bool = Depends(verify_api_key),  # [SECURITY-3]
 ) -> BatchPredictionResponse:
     """Batch scoring for multiple device telemetry observations."""
     if len(payload.items) > 500:

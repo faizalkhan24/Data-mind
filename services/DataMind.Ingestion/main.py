@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 import logging
+import os
 from pathlib import Path
 import sys
 import time
@@ -22,7 +23,7 @@ _SERVICE_DIR = Path(__file__).resolve().parent
 if str(_SERVICE_DIR) not in sys.path:
     sys.path.insert(0, str(_SERVICE_DIR))
 
-from fastapi import FastAPI, HTTPException, Request, Response, status
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from ingestion_config import settings
@@ -35,6 +36,7 @@ from schemas import (
     RawTelemetryReading,
     StreamStatsResponse,
 )
+from services.security_auth import verify_api_key  # [SECURITY-3]
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -60,12 +62,21 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS middleware
+# [SECURITY-1]: Whitelist trusted origins instead of wildcard '*'
+_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "DATAMIND_CORS_ORIGINS",
+        "http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000,http://127.0.0.1:8000",
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -103,7 +114,10 @@ async def health_check() -> dict:
     status_code=status.HTTP_200_OK,
     tags=["Streaming Ingestion"],
 )
-async def ingest_stream_event(reading: RawTelemetryReading) -> IngestionResponse:
+async def ingest_stream_event(
+    reading: RawTelemetryReading,
+    _auth: bool = Depends(verify_api_key),  # [SECURITY-3]: Authenticate streaming ingestion
+) -> IngestionResponse:
     """Ingests a single streaming telemetry event and computes real-time 25-feature vector."""
     return worker.process_immediate(reading)
 
@@ -114,7 +128,10 @@ async def ingest_stream_event(reading: RawTelemetryReading) -> IngestionResponse
     status_code=status.HTTP_200_OK,
     tags=["Streaming Ingestion"],
 )
-async def ingest_batch_events(batch: BatchIngestRequest) -> BatchIngestResponse:
+async def ingest_batch_events(
+    batch: BatchIngestRequest,
+    _auth: bool = Depends(verify_api_key),  # [SECURITY-3]: Authenticate batch ingestion
+) -> BatchIngestResponse:
     """Ingests and enriches a batch of telemetry events in high-throughput mode."""
     return worker.process_batch(batch.readings)
 
@@ -139,7 +156,9 @@ async def get_device_window_state(device_id: str) -> DeviceWindowState:
     "/api/v1/stream/buffers",
     tags=["Sliding Window Buffer"],
 )
-async def clear_all_buffers() -> dict:
+async def clear_all_buffers(
+    _auth: bool = Depends(verify_api_key),  # [SECURITY-3]: Authenticate administrative operations
+) -> dict:
     """Clears all in-memory device buffers and resets worker state."""
     worker.buffer_manager.clear()
     return {"status": "SUCCESS", "message": "All device sliding window buffers cleared."}

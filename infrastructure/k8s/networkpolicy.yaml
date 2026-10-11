@@ -1,0 +1,89 @@
+# ==============================================================================
+# DataMind Kubernetes Network Policies [SECURITY-5]
+# Network segmentation and zero-trust isolation for storage and cache backends
+# ==============================================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: datamind-postgres-isolation
+  namespace: datamind
+  labels:
+    app.kubernetes.io/name: datamind-postgres-isolation
+    app.kubernetes.io/part-of: datamind
+    app.kubernetes.io/component: security
+spec:
+  # [SECURITY-5]: Restrict database access exclusively to DataMind.Api
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: datamind-api
+      ports:
+        - protocol: TCP
+          port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: datamind-redis-isolation
+  namespace: datamind
+  labels:
+    app.kubernetes.io/name: datamind-redis-isolation
+    app.kubernetes.io/part-of: datamind
+    app.kubernetes.io/component: security
+spec:
+  # [SECURITY-5]: Restrict Redis cache access to Prediction and Ingestion services
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: datamind-prediction
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: datamind-ingestion
+      ports:
+        - protocol: TCP
+          port: 6379
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: datamind-microservices-ingress
+  namespace: datamind
+  labels:
+    app.kubernetes.io/name: datamind-microservices-ingress
+    app.kubernetes.io/part-of: datamind
+    app.kubernetes.io/component: security
+spec:
+  # [SECURITY-5]: Allow ingress routing to microservices from cluster ingress controller
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - datamind-prediction
+          - datamind-api
+          - datamind-ingestion
+          - datamind-dashboard
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 8000
+        - protocol: TCP
+          port: 8001
+        - protocol: TCP
+          port: 8002
+        - protocol: TCP
+          port: 8003

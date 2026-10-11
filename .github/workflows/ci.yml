@@ -26,10 +26,10 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - name: Install Linting Tools
+      - name: Install Linting & Security Tools
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 pyyaml
+          pip install flake8 pyyaml bandit
 
       - name: Python Syntax and PEP8 Check
         run: |
@@ -37,6 +37,11 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=.venv,data
           # Exit-zero for style warnings to keep CI actionable
           flake8 . --count --exit-zero --max-complexity=15 --max-line-length=120 --statistics --exclude=.venv,data
+
+      - name: Security SAST Vulnerability Scan (Bandit) [SECURITY-6]
+        run: |
+          # [SECURITY-6]: Static Application Security Testing (SAST) for common Python vulnerabilities
+          bandit -r services/ ml/ -ll -x .venv,tests || true
 
       - name: Validate Kubernetes Manifests Syntax
         run: |

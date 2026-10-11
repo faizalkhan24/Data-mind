@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+from services.security_auth import sanitize_device_id, validate_finite_number  # [VALIDATION-1], [VALIDATION-3]
 
 
 class RiskFactorDto(BaseModel):
@@ -19,10 +20,19 @@ class RiskFactorDto(BaseModel):
 class TelemetryInput(BaseModel):
     """Raw and engineered telemetry payload for a single device timestamp."""
 
-    device_id: str = Field(..., example="DEV-00042", description="Unique hardware identifier")
-    timestamp: Optional[str] = Field(None, example="2026-01-04T12:00:00", description="ISO-8601 observation timestamp")
+    # [VALIDATION-1]: Alphanumeric constraint + length limit to prevent injection / path traversal
+    device_id: str = Field(
+        ...,
+        min_length=3,
+        max_length=64,
+        pattern=r"^[A-Za-z0-9_\-]+$",
+        example="DEV-00042",
+        description="Unique hardware identifier [VALIDATION-1]",
+    )
+    # [VALIDATION-2]: Strict timestamp validation
+    timestamp: Optional[str] = Field(None, example="2026-01-04T12:00:00", description="ISO-8601 observation timestamp [VALIDATION-2]")
 
-    # Instantaneous primary measurements
+    # Instantaneous primary measurements [VALIDATION-3]: Finite number bounds
     temperature: float = Field(..., ge=-40.0, le=150.0, example=45.2, description="Die/chassis temperature (°C)")
     voltage: float = Field(..., ge=1.0, le=10.0, example=3.75, description="Power rail voltage (V)")
     current: float = Field(..., ge=0.0, le=10.0, example=1.25, description="Current draw (A)")
@@ -31,6 +41,29 @@ class TelemetryInput(BaseModel):
     error_count: float = Field(0.0, ge=0.0, example=1.0, description="Hardware/bus errors in current hour")
     restart_count: float = Field(0.0, ge=0.0, example=0.0, description="Cumulative watchdog reboots")
     uptime_hours: float = Field(..., ge=0.0, example=120.5, description="Continuous uptime since boot (hours)")
+
+    @field_validator("device_id")
+    def validate_device_id_field(cls, v: str) -> str:
+        # [VALIDATION-1]: Enforces strict regex & rejects illegal characters
+        return sanitize_device_id(v)
+
+    @field_validator("timestamp")
+    def validate_timestamp_field(cls, v: Optional[str]) -> Optional[str]:
+        # [VALIDATION-2]: ISO-8601 Datetime validation
+        if v is not None:
+            from datetime import datetime
+            try:
+                datetime.fromisoformat(v.replace("Z", "+00:00"))
+            except ValueError:
+                raise ValueError("[VALIDATION-2] Invalid ISO-8601 timestamp format.")
+        return v
+
+    @field_validator("temperature", "voltage", "current", "battery_level", "uptime_hours", mode="before")
+    def validate_finite_floats(cls, v: Any, info) -> Any:
+        # [VALIDATION-3]: NaN / Infinite boundary guardrail
+        if isinstance(v, (int, float)):
+            validate_finite_number(float(v), info.field_name)
+        return v
 
     # Temporal & Rolling window features (defaults populated if not pre-aggregated)
     temperature_mean_6h: Optional[float] = Field(None, description="6h rolling mean temperature")

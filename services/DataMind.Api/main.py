@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 import logging
+import os
 from pathlib import Path
 import sys
 import time
@@ -48,6 +49,7 @@ from schemas import (
     TelemetryCreate,
     TelemetryResponse,
 )
+from services.security_auth import verify_api_key  # [SECURITY-3]
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -69,11 +71,21 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# [SECURITY-1]: Whitelist trusted origins instead of wildcard '*'
+_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "DATAMIND_CORS_ORIGINS",
+        "http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000,http://127.0.0.1:8000",
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -112,8 +124,9 @@ async def health_check() -> dict:
 @app.get(f"{settings.api_prefix}/devices", response_model=List[DeviceResponse], tags=["Devices"])
 async def list_devices(
     status: Optional[str] = Query(None, description="Filter by device status (ACTIVE, MAINTENANCE, DECOMMISSIONED)"),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
+    # [VALIDATION-4]: Enforce pagination bounds to prevent resource exhaustion / DoS attacks
+    limit: int = Query(100, ge=1, le=500, description="Max devices to return (1-500)"),
+    offset: int = Query(0, ge=0, description="Result pagination offset"),
     db: AsyncSession = Depends(get_db),
 ) -> List[DeviceResponse]:
     """Lists hardware devices in the fleet."""
@@ -131,6 +144,7 @@ async def list_devices(
 async def register_device(
     payload: DeviceCreate,
     db: AsyncSession = Depends(get_db),
+    _auth: bool = Depends(verify_api_key),  # [SECURITY-3]: Authenticate write operations
 ) -> DeviceResponse:
     """Registers a new hardware device into the fleet catalog."""
     repo = DeviceRepository(db)
@@ -165,6 +179,7 @@ async def update_device_status(
     device_id: str,
     payload: DeviceUpdate,
     db: AsyncSession = Depends(get_db),
+    _auth: bool = Depends(verify_api_key),  # [SECURITY-3]: Authenticate write operations
 ) -> DeviceResponse:
     """Updates device operational status or firmware version."""
     repo = DeviceRepository(db)
@@ -191,6 +206,7 @@ async def ingest_telemetry(
     device_id: str,
     payload: TelemetryCreate,
     db: AsyncSession = Depends(get_db),
+    _auth: bool = Depends(verify_api_key),  # [SECURITY-3]: Authenticate write operations
 ) -> TelemetryResponse:
     """Ingests a hardware telemetry event for a device."""
     device_repo = DeviceRepository(db)
@@ -211,7 +227,8 @@ async def ingest_telemetry(
 )
 async def get_telemetry_history(
     device_id: str,
-    limit: int = Query(50, ge=1, le=500),
+    # [VALIDATION-4]: Enforce pagination bounds
+    limit: int = Query(50, ge=1, le=500, description="Max telemetry records (1-500)"),
     db: AsyncSession = Depends(get_db),
 ) -> List[TelemetryResponse]:
     """Retrieves recent telemetry history for a device ordered newest first."""
@@ -234,6 +251,7 @@ async def record_prediction(
     device_id: str,
     payload: PredictionLogCreate,
     db: AsyncSession = Depends(get_db),
+    _auth: bool = Depends(verify_api_key),  # [SECURITY-3]: Authenticate write operations
 ) -> PredictionLogResponse:
     """Logs a model prediction and triggers operational alerts if HIGH risk is detected."""
     pred_repo = PredictionRepository(db)
@@ -259,7 +277,8 @@ async def record_prediction(
 )
 async def get_device_predictions(
     device_id: str,
-    limit: int = Query(50, ge=1, le=200),
+    # [VALIDATION-4]: Enforce pagination bounds
+    limit: int = Query(50, ge=1, le=200, description="Max predictions (1-200)"),
     db: AsyncSession = Depends(get_db),
 ) -> List[PredictionLogResponse]:
     """Retrieves historical prediction audit trail for a device."""
@@ -270,7 +289,8 @@ async def get_device_predictions(
 @app.get(f"{settings.api_prefix}/alerts", response_model=List[AlertResponse], tags=["Alerts"])
 async def list_alerts(
     status: Optional[str] = Query(None, description="Filter by alert status (OPEN, ACKNOWLEDGED, RESOLVED)"),
-    limit: int = Query(50, ge=1, le=200),
+    # [VALIDATION-4]: Enforce pagination bounds
+    limit: int = Query(50, ge=1, le=200, description="Max alerts (1-200)"),
     db: AsyncSession = Depends(get_db),
 ) -> List[AlertResponse]:
     """Lists operational failure alerts."""
@@ -283,6 +303,7 @@ async def update_alert_status(
     alert_id: int,
     payload: AlertUpdate,
     db: AsyncSession = Depends(get_db),
+    _auth: bool = Depends(verify_api_key),  # [SECURITY-3]: Authenticate write operations
 ) -> AlertResponse:
     """Acknowledges or resolves an operational failure alert."""
     repo = AlertRepository(db)

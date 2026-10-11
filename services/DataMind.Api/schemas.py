@@ -4,15 +4,22 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from services.security_auth import sanitize_device_id, validate_finite_number  # [VALIDATION-1], [VALIDATION-3]
 
 
 class DeviceBase(BaseModel):
     """Base device fields."""
 
-    device_id: str = Field(..., example="DEV-00042")
+    # [VALIDATION-1]: Alphanumeric constraint + length limit to prevent injection
+    device_id: str = Field(..., min_length=3, max_length=64, pattern=r"^[A-Za-z0-9_\-]+$", example="DEV-00042")
     firmware_version: str = Field("1.2.0", example="1.2.0")
-    status: str = Field("ACTIVE", example="ACTIVE")
+    status: str = Field("ACTIVE", pattern=r"^(ACTIVE|MAINTENANCE|DECOMMISSIONED)$", example="ACTIVE")
+
+    @field_validator("device_id")
+    def validate_device_id(cls, v: str) -> str:
+        # [VALIDATION-1]: Sanitizes and checks regex
+        return sanitize_device_id(v)
 
 
 class DeviceCreate(DeviceBase):
@@ -24,7 +31,7 @@ class DeviceUpdate(BaseModel):
     """Payload to update device status or firmware."""
 
     firmware_version: Optional[str] = None
-    status: Optional[str] = Field(None, example="MAINTENANCE")
+    status: Optional[str] = Field(None, pattern=r"^(ACTIVE|MAINTENANCE|DECOMMISSIONED)$", example="MAINTENANCE")
 
 
 class DeviceResponse(DeviceBase):
@@ -49,6 +56,11 @@ class TelemetryCreate(BaseModel):
     error_count: float = Field(0.0, example=1.0)
     restart_count: float = Field(0.0, example=0.0)
     uptime_hours: float = Field(..., example=120.5)
+
+    @field_validator("temperature", "voltage", "current", "battery_level", "network_quality", "error_count", "restart_count", "uptime_hours")
+    def validate_metrics_finite(cls, v: float, info) -> float:
+        # [VALIDATION-3]: Prevent NaN, +Inf, -Inf poisoning in telemetry
+        return validate_finite_number(v, info.field_name or "metric")
 
 
 class TelemetryResponse(TelemetryCreate):

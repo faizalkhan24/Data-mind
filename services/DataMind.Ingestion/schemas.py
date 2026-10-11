@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+from services.security_auth import (
+    sanitize_device_id,  # [VALIDATION-1]
+    parse_iso_timestamp,  # [VALIDATION-2]
+    validate_finite_number,  # [VALIDATION-3]
+)
 
 
 def utcnow() -> datetime:
@@ -15,8 +20,11 @@ def utcnow() -> datetime:
 class RawTelemetryReading(BaseModel):
     """Raw sensory reading ingested from an IoT device stream."""
 
-    device_id: str = Field(..., example="DEV-00042", description="Unique hardware identifier")
+    # [VALIDATION-1]: Strict alphanumeric identifier constraint
+    device_id: str = Field(..., min_length=3, max_length=64, pattern=r"^[A-Za-z0-9_\-]+$", example="DEV-00042", description="Unique hardware identifier")
+    # [VALIDATION-2]: Strict ISO-8601 validation
     timestamp: datetime = Field(default_factory=utcnow, description="Observation timestamp")
+    # [VALIDATION-3]: Bounded ranges and finite checks (no NaN/Inf)
     temperature: float = Field(..., ge=-40.0, le=150.0, example=45.2, description="Die temperature (°C)")
     voltage: float = Field(..., ge=1.0, le=10.0, example=3.75, description="Power rail voltage (V)")
     current: float = Field(..., ge=0.0, le=10.0, example=1.25, description="Current draw (A)")
@@ -26,6 +34,23 @@ class RawTelemetryReading(BaseModel):
     restart_count: float = Field(0.0, ge=0.0, example=0.0, description="Cumulative restart count")
     uptime_hours: float = Field(..., ge=0.0, example=120.5, description="Continuous uptime in hours")
     firmware_version: str = Field("1.2.0", description="Firmware version string")
+
+    @field_validator("device_id")
+    def validate_device_id_syntax(cls, v: str) -> str:
+        # [VALIDATION-1]: Sanitizes and verifies device identifier pattern
+        return sanitize_device_id(v)
+
+    @field_validator("timestamp", mode="before")
+    def validate_timestamp_format(cls, v: Any) -> Any:
+        # [VALIDATION-2]: Validates ISO-8601 string parsing
+        if isinstance(v, str):
+            return parse_iso_timestamp(v)
+        return v
+
+    @field_validator("temperature", "voltage", "current", "battery_level", "network_quality", "error_count", "restart_count", "uptime_hours")
+    def validate_metrics_finite(cls, v: float, info) -> float:
+        # [VALIDATION-3]: Guard against NaN and Inf attacks
+        return validate_finite_number(v, info.field_name or "metric")
 
     model_config = {
         "json_schema_extra": {

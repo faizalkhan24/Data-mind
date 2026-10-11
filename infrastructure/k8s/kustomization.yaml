@@ -18,6 +18,7 @@ resources:
   - ingestion.yaml
   - dashboard.yaml
   - ingress.yaml
+  - networkpolicy.yaml
 
 images:
   - name: ghcr.io/faizalkhan24/datamind-prediction

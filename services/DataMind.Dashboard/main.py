@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 import logging
+import os
 from pathlib import Path
 import sys
 import time
@@ -26,9 +27,13 @@ from fastapi import FastAPI, HTTPException, Query, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from dashboard_config import settings
+from services.security_auth import (
+    sanitize_device_id,  # [VALIDATION-1]
+    validate_finite_number,  # [VALIDATION-3]
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -91,7 +96,9 @@ MOCK_ALERTS: List[Dict[str, Any]] = [
 
 class SimulationRequest(BaseModel):
     """Payload for real-time diagnostic simulation."""
-    device_id: str = "DEV-SIMULATOR"
+    # [VALIDATION-1]: Strict alphanumeric identifier constraint
+    device_id: str = Field("DEV-SIMULATOR", min_length=3, max_length=64, pattern=r"^[A-Za-z0-9_\-]+$")
+    # [VALIDATION-3]: Bounded ranges and finite checks (no NaN/Inf)
     temperature: float = Field(..., ge=-40.0, le=150.0, description="Chassis temperature in Celsius")
     voltage: float = Field(..., ge=0.0, le=24.0, description="Operating power rail voltage")
     current: float = Field(..., ge=0.0, le=50.0, description="Current consumption in Amperes")
@@ -99,6 +106,16 @@ class SimulationRequest(BaseModel):
     network_quality: float = Field(..., ge=0.0, le=100.0, description="Wireless signal link quality %")
     uptime_hours: float = Field(..., ge=0.0, description="Continuous uptime in hours")
     firmware_version: str = Field("1.2.0", description="Installed firmware version")
+
+    @field_validator("device_id")
+    def validate_device_id_format(cls, v: str) -> str:
+        # [VALIDATION-1]: Sanitizes and checks regex pattern
+        return sanitize_device_id(v)
+
+    @field_validator("temperature", "voltage", "current", "battery_level", "network_quality", "uptime_hours")
+    def validate_metrics_finite(cls, v: float, info) -> float:
+        # [VALIDATION-3]: Rejects NaN / Inf values
+        return validate_finite_number(v, info.field_name or "metric")
 
 
 class RiskFactor(BaseModel):
@@ -149,11 +166,21 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# [SECURITY-1]: Whitelist trusted origins instead of wildcard '*'
+_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "DATAMIND_CORS_ORIGINS",
+        "http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000,http://127.0.0.1:8000",
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 

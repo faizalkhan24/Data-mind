@@ -46,8 +46,23 @@ spec:
         prometheus.io/port: "8001"
         prometheus.io/path: "/metrics"
     spec:
+      # [SECURITY-4]: Enforce non-root execution and runtime seccomp profile
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: api
+          # [SECURITY-4]: Drop all capabilities and prevent privilege escalation
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
           image: ghcr.io/faizalkhan24/datamind-api:latest
           imagePullPolicy: IfNotPresent
           ports:

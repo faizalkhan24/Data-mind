@@ -34,6 +34,7 @@ from schemas import (
     RiskFactorDto,
     TelemetryInput,
 )
+from services.security_auth import verify_model_integrity  # [SECURITY-2]
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,10 @@ class PredictionEngine:
         if not self.model_path.exists():
             logger.error("Model artifact does not exist at %s", self.model_path)
             raise FileNotFoundError(f"Model artifact not found at {self.model_path}")
+
+        # [SECURITY-2]: Cryptographic Checksum Verification prior to joblib deserialization
+        # Prevents arbitrary code execution from malicious or tampered model artifacts
+        verify_model_integrity(self.model_path)
 
         logger.info("Loading production model artifact from %s...", self.model_path)
         t0 = time.perf_counter()
