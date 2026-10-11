@@ -2,8 +2,8 @@
 
 [![Python 3.11](https://img.shields.io/badge/python-3.11.9-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests: 65 Passing](https://img.shields.io/badge/tests-65%20passed-brightgreen.svg)]()
-[![Status: Phase 3 In Progress](https://img.shields.io/badge/status-10%2F14%20Milestones%20Complete-orange.svg)]()
+[![Tests: 74 Passing](https://img.shields.io/badge/tests-74%20passed-brightgreen.svg)]()
+[![Status: Phase 3 Complete](https://img.shields.io/badge/status-11%2F14%20Milestones%20Complete-brightgreen.svg)]()
 
 **DataMind** is an enterprise-grade predictive intelligence platform designed to demonstrate deep Software Engineering, Data Engineering, and Machine Learning capabilities (Google Software Engineer standard). 
 
@@ -83,15 +83,15 @@ The project is structured into **4 distinct phases** spanning 14 modular milesto
 
 ```
 Phase 1: ML Foundations & Ensembles      ──► [COMPLETED (M1 – M5)]
-Phase 2: Explainability & Serving API    ──► [IN PROGRESS (M6 – M8)]  ──► (Working MVP API)
-Phase 3: Data Systems & Fleet UI         ──► [PLANNED (M9 – M11)]     ──► (Full Data Platform)
-Phase 4: Cloud, Observability & CI/CD    ──► [PLANNED (M12 – M14)]    ──► (Enterprise Production)
+Phase 2: Explainability & Serving API    ──► [COMPLETED (M6 – M8)]
+Phase 3: Data Systems & Fleet UI         ──► [COMPLETED (M9 – M11)]   ──► (Full Data Platform)
+Phase 4: Cloud, Observability & CI/CD    ──► [IN PROGRESS (M12 – M14)] ──► (Enterprise Production)
 ```
 
 ### Roadmap Breakdown:
 
 | # | Milestone | Domain | Deliverables & Scope | Status | Git Commit / Doc |
-| :-: | :--- | :--- | :--- | :-: | :--- |
+| :-: | :--- | :--- | :--- | :---: | :--- |
 | **M1** | **Data Generation & Validation** | Data Eng | Physics-grounded simulator (100k rows, seed 42), 13-rule pre-ML validator | **Completed** | [`8ad82d2`](https://github.com/faizalkhan24/Data-mind/commit/8ad82d2) &bull; [Doc](docs/milestones/MILESTONE_1_DATA_GENERATION_AND_VALIDATION.md) |
 | **M2** | **Exploratory Data Analysis** | Data Science | 10 core questions, Tukey IQR outlier preservation, leakage audit, 6 figures | **Completed** | [`851c998`](https://github.com/faizalkhan24/Data-mind/commit/851c998) &bull; [Doc](docs/milestones/MILESTONE_2_EXPLORATORY_DATA_ANALYSIS.md) |
 | **M3** | **Feature Engineering Pipeline** | Feature Eng | 25 temporal signals (1h, 6h, 24h rolling, rate-of-change, power sag), zero leakage | **Completed** | [`f7002d6`](https://github.com/faizalkhan24/Data-mind/commit/f7002d6) &bull; [Doc](docs/milestones/MILESTONE_3_FEATURE_ENGINEERING.md) |
@@ -102,8 +102,8 @@ Phase 4: Cloud, Observability & CI/CD    ──► [PLANNED (M12 – M14)]    �
 | **M8** | **Real-Time Prediction API** | Backend / SWE | FastAPI inference server, in-memory model cache, sub-5ms SLA, Pydantic DTOs | **Completed** | [Doc](docs/milestones/MILESTONE_8_PREDICTION_API.md) |
 | **M9** | **Database & Persistence Layer** | Backend / Data | SQLAlchemy 2.0 async engine, PostgreSQL/SQLite DDL, async repositories, audit alerts | **Completed** | [Doc](docs/milestones/MILESTONE_9_DATABASE_PERSISTENCE.md) |
 | **M10** | **Streaming Ingestion & Queue** | Data Eng | Real-time sliding window aggregation worker, queue-driven feature computation | **Completed** | [Doc](docs/milestones/MILESTONE_10_STREAMING_INGESTION.md) |
-| **M11** | **Fleet Health Dashboard** | Frontend | React + TypeScript web console, live risk grid, telemetry graphs, SHAP drawer | **Next** | `services/DataMind.Dashboard/` |
-| **M12** | **Containerization & Compose** | DevOps | Multi-stage Dockerfiles, 1-command local orchestration (`docker compose up`) | *Planned* | `infrastructure/docker/` |
+| **M11** | **Fleet Health Dashboard** | Frontend | Web operations console, live risk grid, telemetry drawer, diagnostic simulator | **Completed** | [Doc](docs/milestones/MILESTONE_11_FLEET_DASHBOARD.md) |
+| **M12** | **Containerization & Compose** | DevOps | Multi-stage Dockerfiles, 1-command local orchestration (`docker compose up`) | **Next** | `infrastructure/docker/` |
 | **M13** | **Observability & Monitoring** | SRE / DevOps | OpenTelemetry tracing, Prometheus metrics (latency, RPS, drift), Grafana | *Planned* | `infrastructure/observability/` |
 | **M14** | **Kubernetes & CI/CD Pipelines** | Cloud / SRE | K8s manifests (Deployments, HPA), GitHub Actions automated CI/CD pipeline | *Planned* | `.github/workflows/` |
 
@@ -157,7 +157,10 @@ python ml/training/register_model.py
 # 10. Start the real-time prediction REST API server
 python -m uvicorn services.DataMind.Prediction.main:app --port 8000
 
-# 11. Run repository automated test suite (55 tests)
+# 11. Start the Fleet Health Operations Console
+python -m uvicorn services.DataMind.Dashboard.main:app --port 8080
+
+# 12. Run repository automated test suite (74 tests)
 python -m unittest discover -s tests -t . -v
 ```
 

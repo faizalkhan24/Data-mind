@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DataMind — Fleet Intelligence & Predictive Maintenance</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Navigation Bar -->
+    <header class="navbar">
+      <div class="nav-brand">
+        <div class="brand-logo">DM</div>
+        <div class="brand-text">
+          <span class="brand-name">DataMind</span>
+          <span class="brand-tag">Predictive Intelligence Engine</span>
+        </div>
+      </div>
+      <div class="nav-controls">
+        <div class="status-indicator">
+          <span class="pulse-dot"></span>
+          <span id="system-status-text">SYSTEM HEALTHY</span>
+        </div>
+        <button id="btn-refresh" class="btn btn-secondary">
+          <span class="btn-icon">↻</span> Refresh
+        </button>
+      </div>
+    </header>
+
+    <!-- KPI Metric Summary Cards -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">TOTAL FLEET DEVICES</div>
+        <div class="kpi-value" id="kpi-total-devices">--</div>
+        <div class="kpi-sub">Managed IoT endpoints</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">ACTIVE HARDWARE</div>
+        <div class="kpi-value kpi-success" id="kpi-active-devices">--</div>
+        <div class="kpi-sub">Nominal operational state</div>
+      </div>
+      <div class="kpi-card kpi-card-danger">
+        <div class="kpi-label">HIGH-RISK UNITS (&gt; 0.70)</div>
+        <div class="kpi-value kpi-danger" id="kpi-high-risk">--</div>
+        <div class="kpi-sub">Predicted failure within 24h</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">OPEN INCIDENTS</div>
+        <div class="kpi-value kpi-warning" id="kpi-open-alerts">--</div>
+        <div class="kpi-sub">Critical failure alerts</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">AVG INFERENCE SLA</div>
+        <div class="kpi-value kpi-highlight" id="kpi-latency">&lt; 0.50 ms</div>
+        <div class="kpi-sub">XGBoost real-time scoring</div>
+      </div>
+    </section>
+
+    <!-- Main Workspace Split -->
+    <div class="workspace-grid">
+      <!-- Left Column: Fleet Inventory & Risk Grid -->
+      <section class="card fleet-section">
+        <div class="card-header">
+          <div class="card-title">Fleet Health & Risk Inventory</div>
+          <div class="table-actions">
+            <input type="text" id="device-search" placeholder="Search Device ID..." class="input-search">
+            <select id="filter-risk" class="select-filter">
+              <option value="ALL">All Risk Levels</option>
+              <option value="HIGH">High Risk Only</option>
+              <option value="NOMINAL">Nominal / Low Risk</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="fleet-table">
+            <thead>
+              <tr>
+                <th>Device ID</th>
+                <th>Firmware</th>
+                <th>Status</th>
+                <th>Risk Prob</th>
+                <th>Risk Level</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="fleet-table-body">
+              <tr>
+                <td colspan="6" class="table-loading">Loading fleet telemetry...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Right Column: Interactive Diagnostic Simulator -->
+      <section class="card simulator-section">
+        <div class="card-header">
+          <div class="card-title">Real-Time Diagnostic Simulator</div>
+          <div class="preset-group">
+            <button class="btn-preset active" data-preset="healthy">Healthy</button>
+            <button class="btn-preset" data-preset="thermal">Thermal Spike</button>
+            <button class="btn-preset" data-preset="battery">Discharge Drop</button>
+            <button class="btn-preset" data-preset="sag">Power Sag</button>
+          </div>
+        </div>
+
+        <form id="simulator-form" class="simulator-form">
+          <div class="input-row">
+            <div class="input-group">
+              <label for="sim-temp">Die Temp (°C)</label>
+              <input type="number" id="sim-temp" step="0.1" value="44.5">
+            </div>
+            <div class="input-group">
+              <label for="sim-volt">Power Rail (V)</label>
+              <input type="number" id="sim-volt" step="0.01" value="3.74">
+            </div>
+          </div>
+          <div class="input-row">
+            <div class="input-group">
+              <label for="sim-curr">Current Draw (A)</label>
+              <input type="number" id="sim-curr" step="0.01" value="1.20">
+            </div>
+            <div class="input-group">
+              <label for="sim-battery">Battery Level (%)</label>
+              <input type="number" id="sim-battery" step="0.1" value="88.0">
+            </div>
+          </div>
+          <div class="input-row">
+            <div class="input-group">
+              <label for="sim-net">Network Quality (%)</label>
+              <input type="number" id="sim-net" step="0.1" value="94.0">
+            </div>
+            <div class="input-group">
+              <label for="sim-uptime">Continuous Uptime (h)</label>
+              <input type="number" id="sim-uptime" step="1" value="120">
+            </div>
+          </div>
+
+          <button type="submit" id="btn-run-inference" class="btn btn-primary btn-block">
+            Score Risk & Compute SHAP Attribution
+          </button>
+        </form>
+
+        <!-- Prediction Result Output Card -->
+        <div class="sim-result-card" id="sim-result-card">
+          <div class="sim-result-header">
+            <div>
+              <span class="sim-risk-badge badge-nominal" id="sim-risk-badge">LOW RISK</span>
+              <span class="sim-prob-text" id="sim-prob-text">P(Fail) = 0.034</span>
+            </div>
+            <span class="sim-latency-badge" id="sim-latency-badge">0.42 ms</span>
+          </div>
+
+          <div class="sim-attribution-box">
+            <div class="attribution-title">SHAP Risk Factor Attribution</div>
+            <div id="sim-risk-factors-list" class="risk-factors-list">
+              <div class="factor-empty">Execute simulation to view factor attributions.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Active Incident Alerts Section -->
+    <section class="card alerts-section">
+      <div class="card-header">
+        <div class="card-title">Active Operational Incidents & Failure Alerts</div>
+        <span class="badge badge-warning" id="alert-counter-badge">0 Alerts</span>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table" id="alerts-table">
+          <thead>
+            <tr>
+              <th>Alert ID</th>
+              <th>Device</th>
+              <th>Severity</th>
+              <th>Incident Description</th>
+              <th>Triggered At</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="alerts-table-body">
+            <tr>
+              <td colspan="6" class="table-loading">No active failure incidents.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Device Detail Inspection Modal -->
+  <div class="modal-backdrop" id="device-modal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-device-id">Device Inspection</h3>
+        <button class="modal-close" id="btn-close-modal">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <p>Loading device telemetry...</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
