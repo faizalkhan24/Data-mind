@@ -83,7 +83,16 @@
     modalDeviceId: document.getElementById('modal-device-id'),
     modalBody: document.getElementById('modal-body'),
     btnCloseModal: document.getElementById('btn-close-modal'),
+    btnOpenRegisterModal: document.getElementById('btn-open-register-modal'),
+    registerDeviceModal: document.getElementById('register-device-modal'),
+    btnCloseRegisterModal: document.getElementById('btn-close-register-modal'),
+    registerDeviceForm: document.getElementById('register-device-form'),
+    regDeviceId: document.getElementById('reg-device-id'),
+    regFirmware: document.getElementById('reg-firmware'),
+    regStatus: document.getElementById('reg-status'),
   };
+
+  let telemetryChart = null;
 
   // ==============================================================================
   // Initialization
@@ -154,8 +163,57 @@
         if (e.target === dom.deviceModal) closeModal();
       });
     }
+
+    // Register Modal Events
+    if (dom.btnOpenRegisterModal) {
+      dom.btnOpenRegisterModal.addEventListener('click', () => {
+        if (dom.registerDeviceModal) dom.registerDeviceModal.style.display = 'flex';
+      });
+    }
+    if (dom.btnCloseRegisterModal) {
+      dom.btnCloseRegisterModal.addEventListener('click', closeRegisterModal);
+    }
+    if (dom.registerDeviceModal) {
+      dom.registerDeviceModal.addEventListener('click', (e) => {
+        if (e.target === dom.registerDeviceModal) closeRegisterModal();
+      });
+    }
+    if (dom.registerDeviceForm) {
+      dom.registerDeviceForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const deviceId = dom.regDeviceId.value.trim();
+        const firmware = dom.regFirmware.value;
+        const devStatus = dom.regStatus.value;
+        try {
+          const resp = await fetch('/api/dashboard/devices', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              device_id: deviceId,
+              firmware_version: firmware,
+              status: devStatus,
+            }),
+          });
+          if (resp.ok) {
+            closeRegisterModal();
+            dom.registerDeviceForm.reset();
+            await fetchFleet();
+            await fetchSummary();
+          } else {
+            const err = await resp.json();
+            alert('Registration failed: ' + (err.detail || 'Error'));
+          }
+        } catch (err) {
+          console.error('Registration failed:', err);
+        }
+      });
+    }
+
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeModal();
+      if (e.key === 'Escape') {
+        closeModal();
+        closeRegisterModal();
+      }
     });
   }
 
@@ -469,6 +527,38 @@
     const hist = data.history || [];
     const isHigh = dev.risk_level === 'HIGH';
 
+    // Remaining Useful Life (RUL) Prognostics Computation
+    const prob = dev.failure_probability || 0.0;
+    let rulHours = 0;
+    let rulBadgeClass = 'badge-nominal';
+    let rulBarColor = 'var(--color-success)';
+    let rulText = '';
+    let rulStatus = 'NOMINAL';
+    let barWidth = '100%';
+
+    if (prob >= 0.70) {
+      rulHours = Math.max(2, Math.round((1 - prob) * 36));
+      rulBadgeClass = 'badge-danger';
+      rulBarColor = 'var(--color-danger)';
+      rulText = `~${rulHours} Hours Remaining (Immediate Action Required)`;
+      rulStatus = 'CRITICAL IMPENDING FAILURE';
+      barWidth = `${Math.max(10, Math.round((1 - prob) * 100))}%`;
+    } else if (prob >= 0.30) {
+      rulHours = Math.round((1 - prob) * 168);
+      rulBadgeClass = 'badge-warning';
+      rulBarColor = 'var(--color-warning)';
+      rulText = `~${rulHours} Hours Remaining (Inspection Recommended)`;
+      rulStatus = 'ELEVATED DEGRADATION RISK';
+      barWidth = `${Math.round((1 - prob) * 100)}%`;
+    } else {
+      rulHours = 720;
+      rulBadgeClass = 'badge-nominal';
+      rulBarColor = 'var(--color-success)';
+      rulText = '> 720 Hours (Optimal Lifecycle)';
+      rulStatus = 'NOMINAL LIFECYCLE';
+      barWidth = '95%';
+    }
+
     const historyRows = hist.map((h) => `
       <tr>
         <td style="font-family: var(--font-mono); font-size: 11px;">${h.timestamp.slice(11, 19)}</td>
@@ -482,6 +572,24 @@
     `).join('');
 
     dom.modalBody.innerHTML = `
+      <!-- Remaining Useful Life (RUL) Card -->
+      <div class="rul-prognostic-card">
+        <div class="rul-header">
+          <div class="rul-title">Prognostic Remaining Useful Life (RUL)</div>
+          <span class="badge ${rulBadgeClass}">${rulStatus}</span>
+        </div>
+        <div class="rul-countdown" style="color: ${rulBarColor};">${rulText}</div>
+        <div class="rul-bar-wrap">
+          <div class="rul-bar" style="width: ${barWidth}; background: ${rulBarColor};"></div>
+        </div>
+      </div>
+
+      <!-- Multi-Metric Telemetry Trend Chart -->
+      <div class="chart-container">
+        <canvas id="device-telemetry-chart"></canvas>
+      </div>
+
+      <!-- Hardware Spec Grid -->
       <div class="modal-spec-grid">
         <div class="modal-spec-item">
           <span class="modal-spec-label">Failure Probability</span>
@@ -515,7 +623,7 @@
         <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; color: var(--text-dim);">
           Trailing 10-Hour Telemetry Audit
         </div>
-        <div class="table-responsive" style="max-height: 220px;">
+        <div class="table-responsive" style="max-height: 180px;">
           <table class="data-table">
             <thead>
               <tr>
@@ -535,10 +643,115 @@
         </div>
       </div>
     `;
+
+    // Render Chart.js Multi-Metric Sparklines
+    renderTelemetryChart(hist);
+  }
+
+  function renderTelemetryChart(history) {
+    if (typeof Chart === 'undefined') return;
+    const canvas = document.getElementById('device-telemetry-chart');
+    if (!canvas) return;
+
+    if (telemetryChart) {
+      telemetryChart.destroy();
+      telemetryChart = null;
+    }
+
+    const reversed = [...history].reverse();
+    const labels = reversed.map((h) => h.timestamp.slice(11, 16));
+    const temps = reversed.map((h) => h.temperature);
+    const volts = reversed.map((h) => h.voltage);
+    const batts = reversed.map((h) => h.battery_level);
+
+    telemetryChart = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Temp (°C)',
+            data: temps,
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.08)',
+            borderWidth: 2,
+            tension: 0.35,
+            pointRadius: 3,
+            yAxisID: 'yTemp',
+          },
+          {
+            label: 'Voltage (V)',
+            data: volts,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.08)',
+            borderWidth: 2,
+            tension: 0.35,
+            pointRadius: 3,
+            yAxisID: 'yVolt',
+          },
+          {
+            label: 'Battery (%)',
+            data: batts,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.08)',
+            borderWidth: 2,
+            tension: 0.35,
+            pointRadius: 3,
+            yAxisID: 'yBatt',
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { color: '#94a3b8', boxWidth: 12, font: { size: 10 } },
+          },
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+            ticks: { color: '#64748b', font: { size: 9 } },
+          },
+          yTemp: {
+            type: 'linear',
+            position: 'left',
+            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+            ticks: { color: '#ef4444', font: { size: 9 } },
+            title: { display: false },
+          },
+          yVolt: {
+            type: 'linear',
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: { color: '#3b82f6', font: { size: 9 } },
+            title: { display: false },
+          },
+          yBatt: {
+            type: 'linear',
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: { color: '#10b981', font: { size: 9 } },
+            title: { display: false },
+          },
+        },
+      },
+    });
   }
 
   function closeModal() {
+    if (telemetryChart) {
+      telemetryChart.destroy();
+      telemetryChart = null;
+    }
     if (dom.deviceModal) dom.deviceModal.style.display = 'none';
+  }
+
+  function closeRegisterModal() {
+    if (dom.registerDeviceModal) dom.registerDeviceModal.style.display = 'none';
   }
 
   // Start on DOM ready

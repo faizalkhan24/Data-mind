@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <div class="app-container">
@@ -67,6 +68,7 @@
         <div class="card-header">
           <div class="card-title">Fleet Health & Risk Inventory</div>
           <div class="table-actions">
+            <button id="btn-open-register-modal" class="btn btn-primary btn-sm">+ Register Device</button>
             <input type="text" id="device-search" placeholder="Search Device ID..." class="input-search">
             <select id="filter-risk" class="select-filter">
               <option value="ALL">All Risk Levels</option>
@@ -202,6 +204,43 @@
       </div>
       <div class="modal-body" id="modal-body">
         <p>Loading device telemetry...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Register Hardware Device Modal -->
+  <div class="modal-backdrop" id="register-device-modal" style="display: none;">
+    <div class="modal-card modal-sm">
+      <div class="modal-header">
+        <h3>Register Fleet Device</h3>
+        <button class="modal-close" id="btn-close-register-modal">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <form id="register-device-form" class="simulator-form">
+          <div class="input-group" style="margin-bottom: 12px;">
+            <label for="reg-device-id">Device Identifier</label>
+            <input type="text" id="reg-device-id" required pattern="^[A-Za-z0-9_\-]+$" placeholder="DEV-00050" class="input-search">
+            <span style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">Alphanumeric identifier (e.g. DEV-00050)</span>
+          </div>
+          <div class="input-group" style="margin-bottom: 12px;">
+            <label for="reg-firmware">Firmware Release</label>
+            <select id="reg-firmware" class="select-filter" style="width: 100%;">
+              <option value="1.2.0">v1.2.0 (Active Production)</option>
+              <option value="1.1.0">v1.1.0 (Legacy Stable)</option>
+              <option value="1.0.0">v1.0.0 (Base Revision)</option>
+            </select>
+          </div>
+          <div class="input-group" style="margin-bottom: 16px;">
+            <label for="reg-status">Deployment State</label>
+            <select id="reg-status" class="select-filter" style="width: 100%;">
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="MAINTENANCE">MAINTENANCE</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="btn-submit-register">
+            Provision Device
+          </button>
+        </form>
       </div>
     </div>
   </div>

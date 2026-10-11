@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import sys
+import time
 import unittest
 from fastapi.testclient import TestClient
 
@@ -169,6 +170,20 @@ class TestDashboardService(unittest.TestCase):
 
         resp_404 = self.client.patch("/api/dashboard/alerts/99999", json={"status": "RESOLVED"})
         self.assertEqual(resp_404.status_code, 404)
+
+    def test_register_device_endpoint(self) -> None:
+        """Verifies POST /api/dashboard/devices provisions a new device."""
+        dev_id = f"DEV-REG-{int(time.time())}"
+        payload = {
+            "device_id": dev_id,
+            "firmware_version": "1.2.0",
+            "status": "ACTIVE",
+        }
+        resp = self.client.post("/api/dashboard/devices", json=payload)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertTrue(data.get("success"))
+        self.assertEqual(data["device"]["device_id"], dev_id)
 
 
 if __name__ == "__main__":
