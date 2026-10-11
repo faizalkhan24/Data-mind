@@ -2,8 +2,8 @@
 
 [![Python 3.11](https://img.shields.io/badge/python-3.11.9-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests: 74 Passing](https://img.shields.io/badge/tests-74%20passed-brightgreen.svg)]()
-[![Status: Phase 3 Complete](https://img.shields.io/badge/status-11%2F14%20Milestones%20Complete-brightgreen.svg)]()
+[![Tests: 83 Passing](https://img.shields.io/badge/tests-83%20passed-brightgreen.svg)]()
+[![Status: Phase 4 In Progress](https://img.shields.io/badge/status-12%2F14%20Milestones%20Complete-brightgreen.svg)]()
 
 **DataMind** is an enterprise-grade predictive intelligence platform designed to demonstrate deep Software Engineering, Data Engineering, and Machine Learning capabilities (Google Software Engineer standard). 
 
@@ -103,8 +103,8 @@ Phase 4: Cloud, Observability & CI/CD    ──► [IN PROGRESS (M12 – M14)] �
 | **M9** | **Database & Persistence Layer** | Backend / Data | SQLAlchemy 2.0 async engine, PostgreSQL/SQLite DDL, async repositories, audit alerts | **Completed** | [Doc](docs/milestones/MILESTONE_9_DATABASE_PERSISTENCE.md) |
 | **M10** | **Streaming Ingestion & Queue** | Data Eng | Real-time sliding window aggregation worker, queue-driven feature computation | **Completed** | [Doc](docs/milestones/MILESTONE_10_STREAMING_INGESTION.md) |
 | **M11** | **Fleet Health Dashboard** | Frontend | Web operations console, live risk grid, telemetry drawer, diagnostic simulator | **Completed** | [`611b111`](https://github.com/faizalkhan24/Data-mind/commit/611b111) &bull; [Doc](docs/milestones/MILESTONE_11_FLEET_DASHBOARD.md) |
-| **M12** | **Containerization & Compose** | DevOps | Multi-stage Dockerfiles, 1-command local orchestration (`docker compose up`) | **Next** | `infrastructure/docker/` |
-| **M13** | **Observability & Monitoring** | SRE / DevOps | OpenTelemetry tracing, Prometheus metrics (latency, RPS, drift), Grafana | *Planned* | `infrastructure/observability/` |
+| **M12** | **Containerization & Compose** | DevOps | Multi-stage Dockerfiles, 1-command local orchestration (`docker compose up`) | **Completed** | [Doc](docs/milestones/MILESTONE_12_DOCKER_CONTAINERIZATION.md) |
+| **M13** | **Observability & Monitoring** | SRE / DevOps | OpenTelemetry tracing, Prometheus metrics (latency, RPS, drift), Grafana | **Next** | `infrastructure/observability/` |
 | **M14** | **Kubernetes & CI/CD Pipelines** | Cloud / SRE | K8s manifests (Deployments, HPA), GitHub Actions automated CI/CD pipeline | *Planned* | `.github/workflows/` |
 
 ---
@@ -160,8 +160,11 @@ python -m uvicorn services.DataMind.Prediction.main:app --port 8000
 # 11. Start the Fleet Health Operations Console
 python -m uvicorn services.DataMind.Dashboard.main:app --port 8080
 
-# 12. Run repository automated test suite (74 tests)
+# 12. Run full repository automated test suite (83 tests)
 python -m unittest discover -s tests -t . -v
+
+# 13. Or launch complete distributed stack with 1 Docker command
+docker compose up --build -d
 ```
 
 ---

@@ -1,0 +1,176 @@
+# ==============================================================================
+# DataMind: Master Multi-Service Docker Compose Orchestration
+# 1-Command Local Deployment: docker compose up --build -d
+# ==============================================================================
+
+version: "3.9"
+
+services:
+  # ----------------------------------------------------------------------------
+  # PostgreSQL 16: Enterprise Relational Fleet & Alert Persistence
+  # ----------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: datamind-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-datamind}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infrastructure/docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-datamind}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - datamind-net
+
+  # ----------------------------------------------------------------------------
+  # Redis 7: High-Throughput Sliding Window Stream Buffer
+  # ----------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: datamind-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - datamind-net
+
+  # ----------------------------------------------------------------------------
+  # DataMind.Prediction: Real-Time XGBoost Inference & SHAP Attribution Service
+  # ----------------------------------------------------------------------------
+  prediction:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.prediction
+    container_name: datamind-prediction
+    restart: unless-stopped
+    ports:
+      - "${DATAMIND_PREDICTION_PORT:-8000}:8000"
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - datamind-net
+
+  # ----------------------------------------------------------------------------
+  # DataMind.Api: Core Fleet Catalog, Telemetry Persistence & Alerting API
+  # ----------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.api
+    container_name: datamind-api
+    restart: unless-stopped
+    ports:
+      - "${DATAMIND_API_PORT:-8001}:8001"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-datamind}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - datamind-net
+
+  # ----------------------------------------------------------------------------
+  # DataMind.Ingestion: Streaming sliding window feature enrichment worker
+  # ----------------------------------------------------------------------------
+  ingestion:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.ingestion
+    container_name: datamind-ingestion
+    restart: unless-stopped
+    ports:
+      - "${DATAMIND_INGESTION_PORT:-8002}:8002"
+    environment:
+      - DATAMIND_PREDICTION_URL=http://prediction:8000
+      - DATAMIND_API_URL=http://api:8001
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      prediction:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - datamind-net
+
+  # ----------------------------------------------------------------------------
+  # DataMind.Dashboard: Real-Time Fleet Health Web Console & Diagnostic UI
+  # ----------------------------------------------------------------------------
+  dashboard:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.dashboard
+    container_name: datamind-dashboard
+    restart: unless-stopped
+    ports:
+      - "${DATAMIND_DASHBOARD_PORT:-8080}:8080"
+    environment:
+      - DATAMIND_API_URL=http://api:8001
+      - DATAMIND_PREDICTION_URL=http://prediction:8000
+      - DATAMIND_INGESTION_URL=http://ingestion:8002
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      api:
+        condition: service_healthy
+      prediction:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - datamind-net
+
+# ==============================================================================
+# Persistent Volumes & Network Topology
+# ==============================================================================
+volumes:
+  pgdata:
+    name: datamind_pgdata
+  redisdata:
+    name: datamind_redisdata
+
+networks:
+  datamind-net:
+    name: datamind_network
+    driver: bridge
