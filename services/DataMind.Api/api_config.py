@@ -13,7 +13,7 @@ class ApiSettings:
     """Settings loaded from environment variables or sensible local defaults."""
 
     app_name: str = "DataMind Fleet & Analytics API"
-    app_version: str = "1.0.0.0"
+    app_version: str = "1.0.0.1"
     api_prefix: str = "/api/v1"
     database_url: str = field(
         default_factory=lambda: os.getenv(

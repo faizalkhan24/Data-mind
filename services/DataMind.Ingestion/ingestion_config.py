@@ -10,7 +10,7 @@ class IngestionSettings(BaseModel):
     """Configuration parameters for streaming buffer and event queue."""
 
     app_name: str = "DataMind Streaming Ingestion Service"
-    app_version: str = "1.0.0.0"
+    app_version: str = "1.0.0.1"
 
     # Streaming buffer & window configuration
     window_max_points: int = Field(

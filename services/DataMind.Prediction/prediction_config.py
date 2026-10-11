@@ -26,7 +26,7 @@ class ServiceSettings:
     """Service configuration loaded from environment or defaults."""
 
     app_name: str = "DataMind Prediction Service"
-    app_version: str = "1.0.0.0"
+    app_version: str = "1.0.0.1"
     api_prefix: str = "/api/v1"
     model_path: Path = field(default_factory=_resolve_model_path)
     host: str = field(default_factory=lambda: os.getenv("API_HOST", "0.0.0.0"))

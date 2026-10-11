@@ -14,7 +14,7 @@ class DashboardSettings(BaseModel):
     """Dashboard server configuration and backend service discovery."""
 
     app_name: str = "DataMind Fleet Health Console"
-    app_version: str = "1.0.0.0"
+    app_version: str = "1.0.0.1"
     static_dir: str = _STATIC_DIR
 
     # Downstream microservice endpoints
