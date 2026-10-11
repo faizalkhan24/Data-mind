@@ -1,10 +1,12 @@
 # DataMind: Predictive Intelligence & Failure Prevention Platform
 
+[![Version: 1.0.0.0](https://img.shields.io/badge/version-1.0.0.0-blue.svg)](VERSION)
 [![Python 3.11](https://img.shields.io/badge/python-3.11.9-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Tests: 98 Passing](https://img.shields.io/badge/tests-98%20passed-brightgreen.svg)]()
 [![Status: 14/14 Milestones Complete](https://img.shields.io/badge/status-14%2F14%20Milestones%20Complete-brightgreen.svg)]()
 [![User Manual](https://img.shields.io/badge/docs-User%20Manual-orange.svg)](docs/USER_MANUAL.md)
+[![Contributing](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 **DataMind** is an enterprise-grade predictive intelligence platform designed to demonstrate deep Software Engineering, Data Engineering, and Machine Learning capabilities (Google Software Engineer standard). 
 
@@ -216,7 +218,22 @@ D:\DataMind
 ## 7. Technology Stack
 
 * **Machine Learning & Data:** Python 3.11, pandas, NumPy, scikit-learn, XGBoost, SHAP, MLflow.
-* **Serving & Backend:** FastAPI, C# / .NET 10, ASP.NET Core, Pydantic.
-* **Storage & Messaging:** PostgreSQL, Redis, Apache Kafka.
-* **Frontend:** React, TypeScript, Vite, TailwindCSS.
-* **DevOps & Cloud:** Docker, Docker Compose, Kubernetes, Prometheus, Grafana, OpenTelemetry, GitHub Actions.
+* **Serving & Backend:** FastAPI, SQLAlchemy 2.0, asyncpg, aiosqlite, Pydantic.
+* **Storage & Messaging:** PostgreSQL, Redis, Asyncio Queues.
+* **Observability & Ops:** Docker Compose, Kubernetes, Prometheus, Grafana, GitHub Actions.
+
+---
+
+## 8. Open-Source Contributions & Protected Main Branch
+
+We welcome contributions from the global engineering community! To maintain platform reliability, the `main` branch is protected:
+* **Fork & Pull Request Workflow:** External contributors work on their own fork in a dedicated feature branch (`feat/my-feature`) and submit a Pull Request. Direct push access to `main` is restricted to project maintainers.
+* **Automated CI Gates:** Every Pull Request must pass all 98 automated unit tests and code linters via GitHub Actions before review.
+* **Contribution Guide:** Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) for full instructions on development setup, testing, and PR submission.
+
+---
+
+## 9. License
+
+This project is licensed under the MIT License — see the [`LICENSE`](LICENSE) file for details.
+Copyright (c) 2026 Faizal Khan.

@@ -3,7 +3,7 @@
 > **Document:** Comprehensive User & Operator Guide  
 > **Target Audience:** Developers, Data Scientists, MLOps Engineers, and Fleet Operators  
 > **Repository:** [`https://github.com/faizalkhan24/Data-mind.git`](https://github.com/faizalkhan24/Data-mind.git)  
-> **Current Version:** v1.0.0 (Production Ready — 14/14 Milestones Completed)  
+> **Current Version:** v1.0.0.0 (Production Ready — 14/14 Milestones Completed)  
 
 ---
 
